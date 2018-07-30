@@ -34,7 +34,7 @@ var Chart = {
       },
       xAxis: {
         categories: sprint.dates.map(function(date) { 
-          return date.toLocaleDateString()
+          return date.getDate()
         }),
         plotBands: weekendPeriods.map(function(period) {
           return {
@@ -61,7 +61,7 @@ var Chart = {
         marker: {
           radius: 6,
           fillColor: '#98cd38',
-          symbol: 'diamond'
+          symbol: 'circle'
         },
         color: '#98cd38',
         name: 'Ideal',
@@ -117,7 +117,7 @@ var Chart = {
         currentPoints -= issues
             .filter (function (issue) { 
               var closeTime
-              if (issue.closeDate != null) {
+              if (issue.closeDate != null && issue.isDone) {
                 closeTime = issue.closeDate.getTime()
               } else {
                 closeTime = 0

@@ -101,7 +101,7 @@ var Chart = {
           }, 0)
 
         var borderWidth = 0
-        if (filteredIssues.some(issue => issue.isProgress)) {
+        if (filteredIssues.some(issue => issue.isProgress || issue.isDone)) {
           borderWidth = 2
         }
 

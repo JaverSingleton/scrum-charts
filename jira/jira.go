@@ -119,13 +119,22 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 		subtasks[index] = subtask.Key
 	}
 	var progressValues []string = []string{
-		"Waiting for release", 
 		"In Progress", 
 		"In test", 
 		"In Review", 
 		"QA Progress",
 	}
+	var doneValues []string = []string{
+		"Waiting for release", 
+		"In Master", 
+		"Resolved", 
+		"Closed", 
+	}
 	isProgress, _ := contains(jiraIssue.Fields.Status.Name, progressValues)
+	isDone, _ := contains(jiraIssue.Fields.Status.Name, doneValues)
+	if (!isDone) {
+		resolutionDate = ""
+	}
 	return jiraIssue.Key, Issue {
 		StoryPoints: jiraIssue.Fields.Customfield_10212,
 		CloseDate: resolutionDate,
@@ -134,6 +143,7 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 		Platforms: platforms,
 		Subtasks: subtasks,
 		IsProgress: isProgress,
+		IsDone: isDone,
 	}
 }
 
@@ -168,6 +178,7 @@ type Issue struct {
     ChildrenStories float64 `json:"childrenStories"`
     Subtasks []string `json:"subtasks"`
     IsProgress bool `json:"isProgress"`
+    IsDone bool `json:"isDone"`
 }
 
 type JiraIssue struct {

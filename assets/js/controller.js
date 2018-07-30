@@ -12,4 +12,4 @@ var interval = function () {
 		});
 };
 interval();
-setInterval(interval, 600000)
+setInterval(interval, 60000)

@@ -13,6 +13,7 @@ type Config struct {
 	Weekend []string `json:"weekend"`
 	Code int `json:"code"`
 	Team string `json:"team"`
+	CacheLifetime int `json:"cacheLifetime"`
 }
 
 func GetConfig() (Config, error) {

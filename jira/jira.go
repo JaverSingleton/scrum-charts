@@ -13,6 +13,8 @@ import (
 	"github.com/JaverSingleton/scrum-charts/config"
 )
 
+var cache = make(map[string]JiraSearch)
+
 func GetIssues(config config.Config, credentials config.Credentials) ([]Issue, error) {
 	var jql string
 	if (config.Query != "") {
@@ -28,41 +30,10 @@ func GetIssues(config config.Config, credentials config.Credentials) ([]Issue, e
 }
 
 func Search(config config.Config, credentials config.Credentials, jql string) ([]Issue, error) { 
-	var Url *url.URL
-    Url, err := url.Parse("https://jr.avito.ru")
+	search, err := search(config, credentials, jql)
     if err != nil {
     	return []Issue {}, err
     }
-
-    Url.Path += "/rest/api/2/search"
-    parameters := url.Values{}
-    parameters.Add("jql", jql)
-    parameters.Add("maxResults", "500")
-    Url.RawQuery = parameters.Encode()
-
-    log.Println("Create Request:", Url.String())
-	req, err := http.NewRequest("GET", Url.String(), nil)
-	if (err != nil) {
-    	return []Issue {}, err
-	}
-    req.SetBasicAuth(credentials.Login, credentials.Password)
-	client := &http.Client {}
-    log.Println("Do Request:", Url.String())
-	response, err := client.Do(req)
-    if err != nil {
-    	return []Issue {}, err
-    }
-    defer response.Body.Close()
-    log.Println("Read Body")
-    contents, err := ioutil.ReadAll(response.Body)
-    if err != nil {
-    	return []Issue {}, err
-    }
-    var search = JiraSearch {}
-    log.Println("Umarshal JSON:", string(contents[:]))
-	if err = json.Unmarshal(contents, &search); err != nil {
-		return []Issue {}, err
-	}
 	stories := collectStories(search.Issues)
 	issues:= make([]Issue, len(search.Issues))
 	issuesMap := make(map[string]Issue)
@@ -85,6 +56,52 @@ func Search(config config.Config, credentials config.Credentials, jql string) ([
     log.Println("Finish Children processing")
     log.Println(issues)
 	return issues, nil
+}
+
+func search(config config.Config, credentials config.Credentials, jql string) (JiraSearch, error) {
+	if search, ok := cache[jql]; ok && time.Now().Before(search.ExpiredDate){    
+		return search, nil
+	}
+
+	var Url *url.URL
+    Url, err := url.Parse("https://jr.avito.ru")
+    if err != nil {
+    	return JiraSearch {}, err
+    }
+
+    Url.Path += "/rest/api/2/search"
+    parameters := url.Values{}
+    parameters.Add("jql", jql)
+    parameters.Add("maxResults", "500")
+    Url.RawQuery = parameters.Encode()
+
+    log.Println("Create Request:", Url.String())
+	req, err := http.NewRequest("GET", Url.String(), nil)
+	if (err != nil) {
+    	return JiraSearch {}, err
+	}
+    req.SetBasicAuth(credentials.Login, credentials.Password)
+	client := &http.Client {}
+    log.Println("Do Request:", Url.String())
+	response, err := client.Do(req)
+    if err != nil {
+    	return JiraSearch {}, err
+    }
+    defer response.Body.Close()
+    log.Println("Read Body")
+    contents, err := ioutil.ReadAll(response.Body)
+    if err != nil {
+    	return JiraSearch {}, err
+    }
+    var search = JiraSearch {
+    	ExpiredDate: time.Now().Local().Add(time.Second * time.Duration(config.CacheLifetime)),
+    }
+    log.Println("Umarshal JSON:", string(contents[:]))
+	if err = json.Unmarshal(contents, &search); err != nil {
+		return JiraSearch {}, err
+	}
+	cache[jql] = search
+	return search, nil
 }
 
 func collectStories(issues []JiraIssue) map[string]string {
@@ -204,6 +221,7 @@ type JiraSearch struct {
     MaxResults int `json:"maxResults"`
     StartAt int `json:"startAt"`
     Total int `json:"total"`
+    ExpiredDate time.Time `json:"expiredDate"`
 }
 
 type JiraType struct {

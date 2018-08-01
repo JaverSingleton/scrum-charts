@@ -161,6 +161,7 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 		resolutionDate = ""
 	}
 	return jiraIssue.Key, Issue {
+		Key: jiraIssue.Key,
 		StoryPoints: jiraIssue.Fields.Customfield_10212,
 		CloseDate: resolutionDate,
 		Title: jiraIssue.Fields.Summary,
@@ -169,6 +170,7 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 		Subtasks: subtasks,
 		IsProgress: isProgress,
 		IsDone: isDone,
+		IsStory: jiraIssue.Fields.Issuetype.Name == "Story",
 	}
 }
 
@@ -195,6 +197,7 @@ func convertDate(date string) string {
 }
 
 type Issue struct {
+    Key string `json:"key"`
 	StoryPoints float64 `json:"storyPoints"`
 	CloseDate string `json:"closeDate"`
     Title string `json:"title"`
@@ -204,6 +207,7 @@ type Issue struct {
     Subtasks []string `json:"subtasks"`
     IsProgress bool `json:"isProgress"`
     IsDone bool `json:"isDone"`
+    IsStory bool `json:"isStory"`
 }
 
 type JiraIssue struct {

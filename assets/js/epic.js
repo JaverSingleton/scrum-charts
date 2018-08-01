@@ -42,6 +42,25 @@ var Chart = {
         borderWidth: 0,
         reversed: true
       },
+      tooltip: {
+        formatter: function () {
+          var s = '<b>' + this.point.y + " Story Points" + '</b>';
+
+          if (this.point.issues) {
+            this.point.issues.forEach(function(issue) {
+              s += '<br/>'
+
+              if (issue.isProgress) {
+                s += '🛠 '
+              }
+
+              s += issue.storyPoints + ": " + issue.key + " - " + issue.title;
+            })
+          }
+
+          return s;
+        }
+      },
       series: [{
         color: '#fc6267',
         name: 'Backend',
@@ -88,7 +107,8 @@ var Chart = {
       return categoriesIssues.map(function(issues) {
         var filteredIssues = issues
           .filter(issue => issue.platforms.some(platform => platform == category))
-        var storyPoints = filteredIssues
+          .filter(issue => !issue.isStory)
+        var openedIssues = filteredIssues
           .filter(function (issue) { 
             var closeTime
             if (issue.closeDate != null) {
@@ -98,6 +118,7 @@ var Chart = {
             }
             return closeTime > currentTime && !issue.isDone
           })
+        var storyPoints = openedIssues
           .map(issue => issue.storyPoints + issue.childrenStories)
           .reduce (function(result, storyPoints){
             return result + storyPoints
@@ -110,9 +131,9 @@ var Chart = {
 
         return { 
           borderWidth: borderWidth,
+          issues: openedIssues,
           y: storyPoints
         }
-
       })
     }
 

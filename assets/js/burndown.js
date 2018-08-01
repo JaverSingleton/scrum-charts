@@ -55,6 +55,28 @@ var Chart = {
         verticalAlign: 'middle',
         borderWidth: 0
       },
+      tooltip: {
+        formatter: function () {
+          var s = ""
+
+          if (this.points[1]) {
+            s = '<b>' + this.points[1].y + " (Ideal: " + this.points[0].y + ')</b>';
+          } else {
+            s = '<b>' + "Ideal: " + this.points[0].y + '</b>';
+          }
+
+          this.points.forEach(function(point){
+            if (point.point.issues) {
+              point.point.issues.forEach(function(issue) {
+                s += '<br/>' + (-issue.storyPoints) + ": " + issue.key + " - " + issue.title;
+              })
+            }
+          })
+
+          return s;
+        },
+        shared: true
+      },
       series: [{
         showInLegend: false,
         lineWidth: 2,
@@ -114,7 +136,7 @@ var Chart = {
       var currentTime = currentDate.getTime()
       var workDates = dates.filter( date => date.getTime() <= currentTime)
       return workDates.map (function(date, index) {
-        currentPoints -= issues
+        var closedIssues = issues
             .filter (function (issue) { 
               var closeTime
               if (issue.closeDate != null && issue.isDone) {
@@ -124,6 +146,7 @@ var Chart = {
               }
               return closeTime == date.getTime()
             })
+        currentPoints -= closedIssues
             .map (issue => issue.storyPoints)
             .reduce (function(result, storyPoints){
               return result + storyPoints
@@ -131,6 +154,7 @@ var Chart = {
             
           if (index == workDates.length - 1) {
             return {  
+              issues: closedIssues,
               marker: {
                 lineWidth: 2,
                 lineColor: "#1df8fc"  
@@ -138,7 +162,10 @@ var Chart = {
               y: currentPoints
             }
           } else {
-            return currentPoints
+            return {  
+              issues: closedIssues,
+              y: currentPoints
+            }
           }
         })
     }

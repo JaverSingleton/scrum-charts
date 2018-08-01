@@ -68,7 +68,14 @@ var Chart = {
           this.points.forEach(function(point){
             if (point.point.issues) {
               point.point.issues.forEach(function(issue) {
-                s += '<br/>' + (-issue.storyPoints) + ": " + issue.key + " - " + issue.title;
+                s += '<br/>'
+
+                if (issue.isStory) {
+                  s += '✅'
+                } else {
+                  s += (-issue.storyPoints)
+                }
+                s += ": " + issue.key + " - " + issue.title;
               })
             }
           })

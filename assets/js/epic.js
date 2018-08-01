@@ -44,7 +44,7 @@ var Chart = {
       },
       tooltip: {
         formatter: function () {
-          var s = '<b>' + this.point.y + " " + this.point.platform + '</b>';
+          var s = '<b>' + this.point.y + " (" + this.point.platform + ')</b>';
 
           if (this.point.issues) {
             this.point.issues.forEach(function(issue) {

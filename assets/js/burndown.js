@@ -33,9 +33,7 @@ var Chart = {
         x: -20
       },
       xAxis: {
-        categories: sprint.dates.map(function(date) { 
-          return date.getDate()
-        }),
+        categories: sprint.dates.map(date => date.getDate()),
         plotBands: weekendPeriods.map(function(period) {
           return {
             color: 'rgba(64, 64, 64, 0.2)',

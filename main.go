@@ -135,6 +135,11 @@ func ping(w http.ResponseWriter, r *http.Request) {
 	w.Write(js)
 }
 
+func invalidateCache(w http.ResponseWriter, r *http.Request) {
+	jira.InvalidateCache()
+	w.Write([]byte("Cache is clean"))
+}
+
 func main() {
 	fmt.Println("Listening on port :3000")
 
@@ -142,6 +147,7 @@ func main() {
 	http.HandleFunc("/burndown", burndown)
 	http.HandleFunc("/epic", epic)
 	http.HandleFunc("/ping", ping)
+	http.HandleFunc("/cache/invalidate", invalidateCache)
 	http.HandleFunc("/sprint", sprintInfo)
 
 	http.ListenAndServe(":3000", nil)

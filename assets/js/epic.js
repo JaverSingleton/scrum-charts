@@ -2,7 +2,7 @@ var Chart = {
 
   draw : function (sprint) {
     var groupedIssues = calculateCategories(sprint.issues)
-    var categories = Object.keys(groupedIssues)
+    var categories = Object.keys(groupedIssues).sort()
     var categoriesIssues = categories.map(category => groupedIssues[category])
     var chart = new Highcharts.Chart({
       chart: {
@@ -80,7 +80,7 @@ var Chart = {
             result[parent].push(issue);
           })
           return result;
-      }, Object.create(null));
+      }, Object.create(null))
     }
 
     function calculateCategoryStories(categoriesIssues, category) {
@@ -96,7 +96,7 @@ var Chart = {
             } else {
               closeTime = currentTime + 1
             }
-            return closeTime > currentTime
+            return closeTime > currentTime && !issue.isDone
           })
           .map(issue => issue.storyPoints + issue.childrenStories)
           .reduce (function(result, storyPoints){
@@ -104,7 +104,7 @@ var Chart = {
           }, 0)
 
         var borderWidth = 0
-        if (filteredIssues.some(issue => issue.isProgress || issue.isDone)) {
+        if (filteredIssues.some(issue => issue.isProgress)) {
           borderWidth = 2
         }
 

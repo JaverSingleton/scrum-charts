@@ -15,6 +15,10 @@ import (
 
 var cache = make(map[string]JiraSearch)
 
+func InvalidateCache() {
+	cache = make(map[string]JiraSearch)
+}
+
 func GetIssues(config config.Config, credentials config.Credentials) ([]Issue, error) {
 	var jql string
 	if (config.Query != "") {
@@ -140,11 +144,15 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 		"In test", 
 		"In Review", 
 		"QA Progress",
+		"Ready for merge",
 	}
 	var doneValues []string = []string{
 		"Waiting for release", 
 		"In Master", 
 		"Resolved", 
+		"Released", 
+		"Done", 
+		"Ready for release", 
 		"Closed", 
 	}
 	isProgress, _ := contains(jiraIssue.Fields.Status.Name, progressValues)

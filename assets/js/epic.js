@@ -54,7 +54,7 @@ var Chart = {
                 s += '🛠 '
               }
 
-              s += issue.storyPoints + ": " + issue.key + " - " + issue.title;
+              s += (issue.storyPoints + issue.childrenStories)+ ": " + issue.key + " - " + issue.title;
             })
           }
 

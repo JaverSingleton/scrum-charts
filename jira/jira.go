@@ -100,7 +100,7 @@ func search(config config.Config, credentials config.Credentials, jql string) (J
     var search = JiraSearch {
     	ExpiredDate: time.Now().Local().Add(time.Second * time.Duration(config.CacheLifetime)),
     }
-    log.Println("Umarshal JSON:", string(contents[:]))
+    log.Println("Umarshal JSON")
 	if err = json.Unmarshal(contents, &search); err != nil {
 		return JiraSearch {}, err
 	}
@@ -171,6 +171,7 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 		IsProgress: isProgress,
 		IsDone: isDone,
 		IsStory: jiraIssue.Fields.Issuetype.Name == "Story",
+		IsChild: len(jiraIssue.Fields.Parent.Id) > 0,
 	}
 }
 
@@ -208,6 +209,7 @@ type Issue struct {
     IsProgress bool `json:"isProgress"`
     IsDone bool `json:"isDone"`
     IsStory bool `json:"isStory"`
+    IsChild bool `json:"isChild"`
 }
 
 type JiraIssue struct {
@@ -225,6 +227,7 @@ type JiraFields struct {
     Issuelinks []JiraLink `json:"issuelinks"`
     Components []JiraComponent `json:"components"`
     Subtasks []JiraIssue `json:"subtasks"`
+    Parent JiraParent `json:"parent"`
 }
 
 type JiraSearch struct {
@@ -260,4 +263,9 @@ type JiraComponent struct {
 type JiraStatus struct {
     Id string `json:"id"`
     Name string `json:"name"`
+}
+
+type JiraParent struct {
+    Id string `json:"id"`
+    Key string `json:"key"`
 }

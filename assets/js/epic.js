@@ -91,7 +91,7 @@ var Chart = {
 
     function calculateCategories(issues) {
       return issues.reduce(function (result, issue) {
-          if (issue.parents.length == 0) {
+          if (issue.parents.length == 0 && !issue.isChild) {
             issue.parents.push("")
           }
           issue.parents.forEach(function(parent) {

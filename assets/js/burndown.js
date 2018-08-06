@@ -8,6 +8,9 @@ var Chart = {
     var actualChart = calculateActualChart(maxPoints, sprint.dates, sprint.issues)
     var weekendPeriods = calculateWeekendPeriods(sprint.dates, sprint.weekend)
     var chart = new Highcharts.Chart({
+      credits: {
+        enabled: false
+      },
       chart: {
           renderTo: 'chart',
           spacingBottom: 30,

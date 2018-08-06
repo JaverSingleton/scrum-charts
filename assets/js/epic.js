@@ -5,6 +5,9 @@ var Chart = {
     var categories = Object.keys(groupedIssues).sort()
     var categoriesIssues = categories.map(category => groupedIssues[category])
     var chart = new Highcharts.Chart({
+      credits: {
+        enabled: false
+      },
       chart: {
           renderTo: 'chart',
           type: 'bar',

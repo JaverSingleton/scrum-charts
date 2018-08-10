@@ -57,7 +57,7 @@ var Chart = {
             this.point.issues.forEach(function(issue) {
               s += '<br/>'
               var storyPoints = 0
-              if (issue.isDone) {
+              if (issue.closeDate) {
                 storyPoints -= issue.storyPoints
               } else {
                 storyPoints += issue.storyPoints
@@ -176,7 +176,7 @@ var Chart = {
         var filteredIssues = issues
           .filter(issue => issue.platforms.some(platform => platform == category))
           .filter(issue => !issue.isStory)
-          .filter(issue => issue.isProgress == isProgress)
+          .filter(issue => (issue.isProgress || issue.isDone) == isProgress)
         var openedIssues = filteredIssues
           .filter(function (issue) { 
             var closeTime
@@ -185,7 +185,7 @@ var Chart = {
             } else {
               closeTime = currentTime + 1
             }
-            return closeTime > currentTime && !issue.isDone
+            return closeTime > currentTime
           })
         var storyPoints = openedIssues
           .map(issue => issue.storyPoints)

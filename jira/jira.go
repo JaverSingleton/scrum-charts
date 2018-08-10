@@ -39,19 +39,19 @@ func Search(config config.Config, credentials config.Credentials, jql string) ([
     	return []Issue {}, err
     }
 	stories := collectStories(search.Issues)
-	issues:= make([]Issue, len(search.Issues))
-	issuesMap := make(map[string]Issue)
+	issues:= make([]*Issue, len(search.Issues))
+	issuesMap := make(map[string]*Issue)
 	for index, element := range search.Issues {
 		key, issue := convertJiraIssue(stories, element)
-		issues[index] = issue
-		issuesMap[key] = issue
+		issues[index] = &issue
+		issuesMap[key] = &issue
 	}
     log.Println("Start Children processing")
 	for index, issue := range issues {
 		for _, childIssueKey := range issue.Subtasks {
     		log.Println("Children key:", issue.Title, childIssueKey)
-			if childIssue, ok := issuesMap[childIssueKey]; ok {    
-				issues[index].ChildrenStories += childIssue.StoryPoints
+			if childIssue, ok := issuesMap[childIssueKey]; ok {  
+				childIssue.Parents = issues[index].Parents
 				issues[index].IsProgress = issues[index].IsProgress || childIssue.IsProgress
 			}
 		}
@@ -59,7 +59,12 @@ func Search(config config.Config, credentials config.Credentials, jql string) ([
 	}
     log.Println("Finish Children processing")
     log.Println(issues)
-	return issues, nil
+
+	result:= make([]Issue, len(issues))
+	for index, issue := range issues {
+		result[index] = *issue
+	}
+	return result, nil
 }
 
 func search(config config.Config, credentials config.Credentials, jql string) (JiraSearch, error) {

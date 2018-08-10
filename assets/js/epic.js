@@ -47,17 +47,22 @@ var Chart = {
       },
       tooltip: {
         formatter: function () {
-          var s = '<b>' + this.point.y + " (" + this.point.platform + ')</b>';
+          var resultStoryPoints = this.point.y
+          if (this.point.issues.length > 0 & this.point.issues[0].isDone) {
+            resultStoryPoints = 0 - resultStoryPoints
+          }
+          var s = '<b>' + resultStoryPoints + " (" + this.point.platform + ')</b>';
 
           if (this.point.issues) {
             this.point.issues.forEach(function(issue) {
               s += '<br/>'
-
-              if (issue.isProgress) {
-                s += '🛠 '
+              var storyPoints = 0
+              if (issue.isDone) {
+                storyPoints -= issue.storyPoints
+              } else {
+                storyPoints += issue.storyPoints
               }
-
-              s += (issue.storyPoints + issue.childrenStories)+ ": " + issue.key + " - " + issue.title;
+              s += (storyPoints)+ ": " + issue.key + " - " + issue.title;
             })
           }
 
@@ -65,36 +70,96 @@ var Chart = {
         }
       },
       series: [{
-        color: '#fc6267',
+        color: 'rgba(252,98,103, 0.5)',
         name: 'Backend',
         borderWidth: 0,
-        data: calculateCategoryStories(categoriesIssues, "Backend")
+        data: calculateYesterdayStories(categoriesIssues, "Backend")
       }, {
-        color: '#a06ef4',
+        linkedTo:':previous',
+        color: 'rgb(252,98,103)',
+        name: 'Backend',
+        borderWidth: 1,
+        data: calculateStories(categoriesIssues, "Backend", true)
+      },{
+        linkedTo:':previous',
+        color: 'rgb(252,98,103)',
+        name: 'Backend',
+        borderWidth: 0,
+        data: calculateStories(categoriesIssues, "Backend", false)
+      }, {
+        color: 'rgba(160,110,244, 0.5)',
         name: 'Frontend',
         borderWidth: 0,
-        data: calculateCategoryStories(categoriesIssues, "Frontend")
+        data: calculateYesterdayStories(categoriesIssues, "Frontend")
       }, {
-        color: '#98cd38',
+        linkedTo:':previous',
+        color: 'rgb(160,110,244)',
+        name: 'Frontend',
+        borderWidth: 1,
+        data: calculateStories(categoriesIssues, "Frontend", true)
+      }, {
+        linkedTo:':previous',
+        color: 'rgb(160,110,244)',
+        name: 'Frontend',
+        borderWidth: 0,
+        data: calculateStories(categoriesIssues, "Frontend", false)
+      }, {
+        color: 'rgba(152,205,56, 0.5)',
         name: 'Android',
         borderWidth: 0,
-        data: calculateCategoryStories(categoriesIssues, "Android")
+        data: calculateYesterdayStories(categoriesIssues, "Android")
       }, {
-        color: '#95afc0',
+        linkedTo:':previous',
+        color: 'rgb(152,205,56)',
+        name: 'Android',
+        borderWidth: 1,
+        data: calculateStories(categoriesIssues, "Android", true)
+      }, {
+        linkedTo:':previous',
+        color: 'rgb(152,205,56)',
+        name: 'Android',
+        borderWidth: 0,
+        data: calculateStories(categoriesIssues, "Android", false)
+      }, {
+        color: 'rgba(149,175,192, 0.5)',
         name: 'iOS',
         borderWidth: 0,
-        data: calculateCategoryStories(categoriesIssues, "iOS")
+        data: calculateYesterdayStories(categoriesIssues, "iOS")
       }, {
-        color: '#1dacfc',
+        linkedTo:':previous',
+        color: 'rgb(149,175,192)',
+        name: 'iOS',
+        borderWidth: 1,
+        data: calculateStories(categoriesIssues, "iOS", true)
+      }, {
+        linkedTo:':previous',
+        color: 'rgb(149,175,192)',
+        name: 'iOS',
+        borderWidth: 0,
+        data: calculateStories(categoriesIssues, "iOS", false)
+      }, {
+        color: 'rgba(29,172,252, 0.5)',
         name: 'QA',
         borderWidth: 0,
-        data: calculateCategoryStories(categoriesIssues, "QA")
+        data: calculateYesterdayStories(categoriesIssues, "QA")
+      }, {
+        linkedTo:':previous',
+        color: 'rgb(29,172,252)',
+        name: 'QA',
+        borderWidth: 1,
+        data: calculateStories(categoriesIssues, "QA", true)
+      }, {
+        linkedTo:':previous',
+        color: 'rgb(29,172,252)',
+        name: 'QA',
+        borderWidth: 0,
+        data: calculateStories(categoriesIssues, "QA", false)
       }]
     });
 
     function calculateCategories(issues) {
       return issues.reduce(function (result, issue) {
-          if (issue.parents.length == 0 && !issue.isChild) {
+          if (issue.parents.length == 0) {
             issue.parents.push("")
           }
           issue.parents.forEach(function(parent) {
@@ -105,12 +170,13 @@ var Chart = {
       }, Object.create(null))
     }
 
-    function calculateCategoryStories(categoriesIssues, category) {
+    function calculateStories(categoriesIssues, category, isProgress) {
       var currentTime = new Date().getTime()
       return categoriesIssues.map(function(issues) {
         var filteredIssues = issues
           .filter(issue => issue.platforms.some(platform => platform == category))
           .filter(issue => !issue.isStory)
+          .filter(issue => issue.isProgress == isProgress)
         var openedIssues = filteredIssues
           .filter(function (issue) { 
             var closeTime
@@ -122,19 +188,37 @@ var Chart = {
             return closeTime > currentTime && !issue.isDone
           })
         var storyPoints = openedIssues
-          .map(issue => issue.storyPoints + issue.childrenStories)
+          .map(issue => issue.storyPoints)
           .reduce (function(result, storyPoints){
             return result + storyPoints
           }, 0)
 
-        var borderWidth = 0
-        if (filteredIssues.some(issue => issue.isProgress)) {
-          borderWidth = 2
+        return { 
+          issues: openedIssues,
+          platform: category,
+          y: storyPoints
         }
+      })
+    }
+
+    function calculateYesterdayStories(categoriesIssues, category) {
+      var today = new Date()
+      var yesterday = new Date(new Date().setDate(new Date().getDate()-1))
+      var currentHours = new Date().getHours()
+      return categoriesIssues.map(function(issues) {
+        var filteredIssues = issues
+          .filter(issue => issue.platforms.some(platform => platform == category))
+          .filter(issue => !issue.isStory)
+          .filter(issue => issue.isDone)
+          .filter(issue => issue.closeDate)
+          .filter(issue => (issue.closeDate.toLocaleDateString("en-US") == yesterday.toLocaleDateString("en-US") && currentHours < 13 ) || issue.closeDate.toLocaleDateString("en-US") == today.toLocaleDateString("en-US"))
+
+        var storyPoints = filteredIssues
+          .map(issue => issue.storyPoints)
+          .reduce(function(result, storyPoints){ return result + storyPoints }, 0)
 
         return { 
-          borderWidth: borderWidth,
-          issues: openedIssues,
+          issues: filteredIssues,
           platform: category,
           y: storyPoints
         }

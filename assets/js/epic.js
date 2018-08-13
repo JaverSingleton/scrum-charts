@@ -70,12 +70,6 @@ var Chart = {
         }
       },
       series: [{
-        color: 'rgba(252,98,103, 0.5)',
-        name: 'Backend',
-        borderWidth: 0,
-        data: calculateYesterdayStories(categoriesIssues, "Backend")
-      }, {
-        linkedTo:':previous',
         color: 'rgb(252,98,103)',
         name: 'Backend',
         borderWidth: 1,
@@ -87,12 +81,6 @@ var Chart = {
         borderWidth: 0,
         data: calculateStories(categoriesIssues, "Backend", false)
       }, {
-        color: 'rgba(160,110,244, 0.5)',
-        name: 'Frontend',
-        borderWidth: 0,
-        data: calculateYesterdayStories(categoriesIssues, "Frontend")
-      }, {
-        linkedTo:':previous',
         color: 'rgb(160,110,244)',
         name: 'Frontend',
         borderWidth: 1,
@@ -104,12 +92,6 @@ var Chart = {
         borderWidth: 0,
         data: calculateStories(categoriesIssues, "Frontend", false)
       }, {
-        color: 'rgba(152,205,56, 0.5)',
-        name: 'Android',
-        borderWidth: 0,
-        data: calculateYesterdayStories(categoriesIssues, "Android")
-      }, {
-        linkedTo:':previous',
         color: 'rgb(152,205,56)',
         name: 'Android',
         borderWidth: 1,
@@ -121,12 +103,6 @@ var Chart = {
         borderWidth: 0,
         data: calculateStories(categoriesIssues, "Android", false)
       }, {
-        color: 'rgba(149,175,192, 0.5)',
-        name: 'iOS',
-        borderWidth: 0,
-        data: calculateYesterdayStories(categoriesIssues, "iOS")
-      }, {
-        linkedTo:':previous',
         color: 'rgb(149,175,192)',
         name: 'iOS',
         borderWidth: 1,
@@ -138,12 +114,6 @@ var Chart = {
         borderWidth: 0,
         data: calculateStories(categoriesIssues, "iOS", false)
       }, {
-        color: 'rgba(29,172,252, 0.5)',
-        name: 'QA',
-        borderWidth: 0,
-        data: calculateYesterdayStories(categoriesIssues, "QA")
-      }, {
-        linkedTo:':previous',
         color: 'rgb(29,172,252)',
         name: 'QA',
         borderWidth: 1,

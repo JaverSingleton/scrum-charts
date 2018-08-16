@@ -146,6 +146,7 @@ var Chart = {
         var filteredIssues = issues
           .filter(issue => issue.platforms.some(platform => platform == category))
           .filter(issue => !issue.isStory)
+          .filter(issue => !issue.isDone)
           .filter(issue => (issue.isProgress || issue.isDone) == isProgress)
         var openedIssues = filteredIssues
           .filter(function (issue) { 

@@ -12,6 +12,32 @@ import (
 	"github.com/JaverSingleton/scrum-charts/config"
 )
 
+func platforms(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("assets/templates/platforms.html")
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+
+	var team string
+	if array, ok := r.URL.Query()["team"]; ok && len(array) > 0 {    
+		team = array[0]
+	}
+	var code string
+	if array, ok := r.URL.Query()["code"]; ok && len(array) > 0 {    
+		code = array[0]
+	}
+	params := struct {
+		Team string
+		Code string
+	} {
+		Team: team,
+		Code: code,
+	}
+
+	t.ExecuteTemplate(w, "platforms", params)
+}
+
 func epic(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles("assets/templates/epic.html")
 	if err != nil {
@@ -146,6 +172,7 @@ func main() {
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/"))))
 	http.HandleFunc("/burndown", burndown)
 	http.HandleFunc("/epic", epic)
+	http.HandleFunc("/platforms", platforms)
 	http.HandleFunc("/ping", ping)
 	http.HandleFunc("/cache/invalidate", invalidateCache)
 	http.HandleFunc("/sprint", sprintInfo)

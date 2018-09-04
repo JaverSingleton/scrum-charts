@@ -26,6 +26,9 @@ function convertToSprint(sprintInfo) {
 		if(!issue.parents) {
 			issue.parents = []
 		}
+		issue.name = function() {
+			return this.key + " - " + this.title
+		}
 	})
 	return sprint;
 }

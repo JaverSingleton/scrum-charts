@@ -190,12 +190,20 @@ var Chart = {
     }
 
     function calculateIdealPercent(dates, weekend) {
-      var todayTime = new Date().getTime()
+      var today = new Date()
+      var todayTime = today.getTime()
       var workDaysCount = dates.length - weekend.length;
       var doneDatesCount = dates
         .filter(date => date.getTime() <= todayTime)
         .filter(date => !weekend.some(weekendDay => date.getTime() == weekendDay.getTime()))
-        .length
+        .map(function(date){
+          if (date.toLocaleDateString("en-US") == today.toLocaleDateString("en-US")){
+            return today.getHours() / 24.0
+          } else {
+            return 1.0
+          }
+        })
+        .reduce (function(result, value){ return result + value }, 0)
       return doneDatesCount / workDaysCount * 100
     }
 

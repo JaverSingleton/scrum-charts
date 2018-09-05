@@ -24,10 +24,14 @@ func GetIssues(config config.Config, credentials config.Credentials) ([]Issue, e
 	if (config.Query != "") {
 		jql = config.Query
 	} else {
+		var teamQuery string
+		if (config.Team != "") {
+			teamQuery = "AND (\"Feature Team\" is EMPTY OR \"Feature Team\" = " + config.Team + ")"
+		}
 		jql = "Sprint = " + strconv.Itoa(config.Code) + " " +
                 "AND type != Epic " +
                 "AND (resolutiondate is EMPTY OR resolutiondate >= \"" + config.StartDate + "\")" +
-                "AND (\"Feature Team\" is EMPTY OR \"Feature Team\" = " + config.Team + ")"
+                teamQuery
 	}
     log.Println("Search:", jql)
 	return Search(config, credentials, jql)

@@ -26,9 +26,5 @@ func GetConfig() (Config, error) {
 		return Config {}, err
 	}
 
-	if (config.Team == "") {
-		config.Team = "TNS-bulb"
-	}
-
 	return config, nil
 }

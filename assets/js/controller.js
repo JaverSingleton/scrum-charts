@@ -1,6 +1,7 @@
 var interval = function () {
 	var params = {
-		team: teamParam
+		team: teamParam,
+		code: codeParam
 	}
     $.get("sprint", params)
     	.done(function(data){

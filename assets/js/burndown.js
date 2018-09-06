@@ -74,9 +74,9 @@ var Chart = {
                 if (issue.isStory) {
                   s += '✅'
                 } else {
-                  s += (-issue.storyPoints)
+                  s += issue.storyPoints
                 }
-                s += ": " + issue.key + " - " + issue.title;
+                s += ": " + issue.name()
               })
             }
           })

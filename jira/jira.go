@@ -29,7 +29,6 @@ func GetIssues(config config.Config, credentials config.Credentials) ([]Issue, e
 			teamQuery = "AND (\"Feature Team\" is EMPTY OR \"Feature Team\" = " + config.Team + ")"
 		}
 		jql = "Sprint = " + strconv.Itoa(config.Code) + " " +
-                "AND type != Epic " +
                 "AND (resolutiondate is EMPTY OR resolutiondate >= \"" + config.StartDate + "\")" +
                 teamQuery
 	}
@@ -118,9 +117,13 @@ func search(config config.Config, credentials config.Credentials, jql string) (J
 }
 
 func collectStories(issues []JiraIssue) map[string]string {
+	var storyTypes []string = []string{
+		"Story", 
+		"Epic",
+	}
 	stories := make(map[string]string)
 	for _, issue := range issues {
-		if (issue.Fields.Issuetype.Name == "Story") {
+		if (contains(issue.Fields.Issuetype.Name, storyTypes)) {
 			stories[issue.Key] = issue.Fields.Summary
 		}
 	}
@@ -138,6 +141,9 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 				blocks = append(blocks, storyTitle)
 			}
 		}
+	}
+	if storyTitle, ok := stories[jiraIssue.Fields.Epic]; ok {    
+		blocks = append(blocks, storyTitle)
 	}
 	platforms:= make([]string, len(jiraIssue.Fields.Components))
 	for index, component := range jiraIssue.Fields.Components {
@@ -164,11 +170,16 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 		"Ready for release", 
 		"Closed", 
 	}
-	isProgress, _ := contains(jiraIssue.Fields.Status.Name, progressValues)
-	isDone, _ := contains(jiraIssue.Fields.Status.Name, doneValues)
+	isProgress := contains(jiraIssue.Fields.Status.Name, progressValues)
+	isDone := contains(jiraIssue.Fields.Status.Name, doneValues)
 	if (!isDone) {
 		resolutionDate = ""
 	}
+	var storyTypes []string = []string{
+		"Story", 
+		"Epic",
+	}
+
 	return jiraIssue.Key, Issue {
 		Key: jiraIssue.Key,
 		StoryPoints: jiraIssue.Fields.Customfield_10212,
@@ -177,14 +188,16 @@ func convertJiraIssue(stories map[string]string, jiraIssue JiraIssue) (string, I
 		Parents: blocks,
 		Platforms: platforms,
 		Subtasks: subtasks,
+		Labels: jiraIssue.Fields.Labels,
 		IsProgress: isProgress,
 		IsDone: isDone,
-		IsStory: jiraIssue.Fields.Issuetype.Name == "Story",
+		IsStory: contains(jiraIssue.Fields.Issuetype.Name, storyTypes),
 		IsChild: len(jiraIssue.Fields.Parent.Id) > 0,
 	}
 }
 
-func contains(v interface{}, in interface{}) (ok bool, i int) {
+func contains(v interface{}, in interface{}) (ok bool) {
+	var i int
     val := reflect.Indirect(reflect.ValueOf(in))
     switch val.Kind() {
     case reflect.Slice, reflect.Array:
@@ -219,6 +232,7 @@ type Issue struct {
     IsDone bool `json:"isDone"`
     IsStory bool `json:"isStory"`
     IsChild bool `json:"isChild"`
+    Labels []string `json:"labels"`
 }
 
 type JiraIssue struct {
@@ -234,6 +248,8 @@ type JiraFields struct {
     Issuetype JiraType `json:"issuetype"`
     Status JiraStatus `json:"status"`
     Issuelinks []JiraLink `json:"issuelinks"`
+    Epic string `json:"customfield_10216"`
+    Labels []string `json:"labels"`
     Components []JiraComponent `json:"components"`
     Subtasks []JiraIssue `json:"subtasks"`
     Parent JiraParent `json:"parent"`

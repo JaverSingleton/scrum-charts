@@ -14,7 +14,7 @@ var Issues =  {
 		function row(issue) {
 			var html = '<tr>'
 
-			html += column(issue.key)
+			html += '<th scope="row">' + issue.key + '</td>'
 			html += column(issue.name)
 			if (issue.qa != null) {
 				if (issue.qa.outSprint) {
@@ -40,7 +40,9 @@ var Issues =  {
 			return html
 		}
 
-		var html = '<table width="100%" class="layout">'
+		var html = '<table class="table table-bordered">'
+
+		html += '<thead>'
 		html += '<tr>'
 		html += '<th>Номер</th>'
 		html += '<th>Название</th>'
@@ -48,8 +50,11 @@ var Issues =  {
 		html += '<th>Test Casses</th>'
 		html += '<th>Story Points</th>'
 		html += '</tr>'
+		html += '</thead>'
 
+		html += '<tbody>'
 		html += issues.reduce (function(result, issue){ return result + row(issue) }, "")
+		html += '</tbody>'
 
 		html += '</table>'
 		document.write(html)

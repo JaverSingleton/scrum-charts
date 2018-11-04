@@ -1,0 +1,1 @@
+Chart.draw(planningInfo.plannedIssues, planningInfo.maxStoryPoints)

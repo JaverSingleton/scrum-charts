@@ -12,6 +12,8 @@ type Config struct {
 	FinishDate string `json:"finishDate"`
 	Weekend []string `json:"weekend"`
 	Code int `json:"code"`
+	PrevCode int `json:"prevCode"`
+	SpPerDay float64 `json:"spPerDay"`
 	Team string `json:"team"`
 	CacheLifetime int `json:"cacheLifetime"`
 }

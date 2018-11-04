@@ -9,7 +9,9 @@ import (
 	"strconv"
 
 	"github.com/JaverSingleton/scrum-charts/jira"
+	"github.com/JaverSingleton/scrum-charts/charts"
 	"github.com/JaverSingleton/scrum-charts/config"
+	"github.com/JaverSingleton/scrum-charts/planning"
 )
 
 func platforms(w http.ResponseWriter, r *http.Request) {
@@ -90,6 +92,56 @@ func burndown(w http.ResponseWriter, r *http.Request) {
 	t.ExecuteTemplate(w, "burndown", params)
 }
 
+func planningInfo(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles("assets/templates/planning.html")
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	log.Println("\r\n")
+	log.Println("Get Config")
+	credentials, err := config.GetCredentials()
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	config, err := config.GetConfig()
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var assignee string
+	if array, ok := r.URL.Query()["assignee"]; ok && len(array) > 0 {    
+		assignee = array[0]
+	}
+	if array, ok := r.URL.Query()["team"]; ok && len(array) > 0 {    
+		config.Team = array[0]
+	}
+	log.Println("Get Planning Info")
+	info, err := planning.GetPlanningInfo(config, credentials, assignee)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	// log.Println("Marshal JSON")
+	// js, err := json.Marshal(info)
+	// if err != nil {
+	// 	log.Println(err.Error())
+	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
+	// 	return
+	// }
+	params := struct {
+		PlanningInfo planning.PlanningInfo
+	} {
+		PlanningInfo: info,
+	}
+
+	t.ExecuteTemplate(w, "planning", params)
+}
+
 func sprintInfo(w http.ResponseWriter, r *http.Request) {
 	log.Println("\r\n")
 	log.Println("Get Config")
@@ -114,7 +166,7 @@ func sprintInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	log.Println("Get Issues")
-	issues, err := jira.GetIssues(config, credentials)
+	issues, err := charts.GetIssues(config, credentials)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -126,7 +178,7 @@ func sprintInfo(w http.ResponseWriter, r *http.Request) {
 		FinishDate string `json:"finishDate"`
 		Weekend []string `json:"weekend"`
 		Code int `json:"code"`
-		Issues []jira.Issue `json:"issues"`
+		Issues []charts.Issue `json:"issues"`
 	} {
 		Name: config.Name,
 		StartDate: config.StartDate,
@@ -176,6 +228,7 @@ func main() {
 	http.HandleFunc("/ping", ping)
 	http.HandleFunc("/cache/invalidate", invalidateCache)
 	http.HandleFunc("/sprint", sprintInfo)
+	http.HandleFunc("/planning", planningInfo)
 
 	http.ListenAndServe(":3000", nil)
 }

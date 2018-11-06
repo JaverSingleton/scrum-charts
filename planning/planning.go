@@ -140,7 +140,7 @@ func calculateDatesDelta(startDate string, finishDate string) int {
 	if err != nil {
 	    return 0
 	}
-	return int(finishTime.Sub(startTime).Hours() / 24)
+	return int(finishTime.Sub(startTime).Hours() / 24) + 1
 }
 
 type PlanningInfo struct {

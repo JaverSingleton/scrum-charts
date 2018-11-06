@@ -17,7 +17,7 @@ func GetPlanningInfo(config config.Config, credentials config.Credentials, assig
 	}
 
 	var jql string = "Sprint = " + strconv.Itoa(config.Code) + " AND " + 
-		"type != Epic" + 
+		"type != Epic AND type != Story" + 
 		teamQuery
     var plannedIssues []Issue 
     log.Println("Planned Issues getting: Start")
@@ -28,7 +28,7 @@ func GetPlanningInfo(config config.Config, credentials config.Credentials, assig
 
 	jql = "Sprint = " + strconv.Itoa(config.PrevCode) + " AND " + 
 		"Sprint != " + strconv.Itoa(config.Code) + " AND " + 
-		"type != Epic" + " AND " +
+		"type != Epic AND type != Story" + " AND " +
 		"resolutiondate is EMPTY" + 
 		teamQuery
     var lostIssues []Issue 
@@ -75,6 +75,8 @@ func convertIssue(jiraIssue jira.Issue) Issue {
 		Type: jiraIssue.Fields.Issuetype.Name,
 		Assignee: jiraIssue.Fields.Assignee.Name,
 		Platform: jiraIssue.Fields.Components[0].Name,
+		Uri: createUri(jiraIssue.Key),
+		IsResolved: jiraIssue.Fields.Status.Category.Key == "done",
 	}
 }
 
@@ -111,12 +113,18 @@ func findQaIssue(issues map[string]Issue, targetIssue jira.Issue) (result []Issu
 					Name: link.OutwardIssue.Fields.Summary,
 					OutSprint: true,
 					Type: link.OutwardIssue.Fields.Issuetype.Name,
+					Uri: createUri(link.OutwardIssue.Key),
+					IsResolved: link.OutwardIssue.Fields.Status.Category.Key == "done",
 				}
 				result = append(result, qaIssue)
 			}
 		}
 	}
 	return
+}
+
+func createUri(key string) string {
+	return "https://jr.avito.ru/browse/" + key
 }
 
 func hasTestsCassesSubstring(title string) (result bool) {
@@ -159,4 +167,6 @@ type Issue struct {
     Assignee string `json:"assignee"`
     Platform string `json:"platform"`
     OutSprint bool `json:"outSprint"`
+    IsResolved bool `json:"isResolved"`
+    Uri string `json:"uri"`
 }

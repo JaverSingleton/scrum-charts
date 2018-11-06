@@ -116,6 +116,13 @@ type JiraComponent struct {
 type JiraStatus struct {
     Id string `json:"id"`
     Name string `json:"name"`
+    Category JiraStatusCategory `json:"statusCategory"`
+}
+
+type JiraStatusCategory struct {
+    Id int `json:"id"`
+    Key string `json:"key"`
+    Name string `json:"name"`
 }
 
 type JiraParent struct {

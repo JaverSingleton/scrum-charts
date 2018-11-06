@@ -2,6 +2,29 @@ var Issues =  {
 
 	draw: function(issues) {
 
+		function strikeResolved(text, issue) {
+			if (issue.isResolved) {
+				return '<s>' + text + '</s>'
+			} else {
+				return text
+			}
+		}
+
+		function link(text, uri) {
+			return '<a href="' + uri + '">' + text + '</a>'
+		}
+
+		function assignee(issue) {
+			var text = ""
+			if (issue.outSprint) {
+				text += "НЕ В СПРИНТЕ!"
+			} else {
+				text += issue.assignee
+			}
+			text = strikeResolved(text, issue)
+			return column(link(text, issue.uri))
+		}
+
 		function column(text) {
 			var html = '<td>'
 
@@ -14,23 +37,15 @@ var Issues =  {
 		function row(issue) {
 			var html = '<tr>'
 
-			html += '<th scope="row">' + issue.key + '</td>'
-			html += column(issue.name)
+			html += '<th scope="row">' + issue.type + '</td>'
+			html += column(link(strikeResolved(issue.name, issue), issue.uri))
 			if (issue.qa != null) {
-				if (issue.qa.outSprint) {
-					html += column("НЕ В СПРИНТЕ!")
-				} else {
-					html += column(issue.qa.assignee)
-				}
+				html += assignee(issue.qa)
 			} else {
 				html += column("")
 			}
 			if (issue.testCasses != null) {
-				if (issue.testCasses.outSprint) {
-					html += column("НЕ В СПРИНТЕ!")
-				} else {
-					html += column(issue.testCasses.assignee)
-				}
+				html += assignee(issue.testCasses)
 			} else {
 				html += column("")
 			}
@@ -44,7 +59,7 @@ var Issues =  {
 
 		html += '<thead>'
 		html += '<tr>'
-		html += '<th>Номер задачи</th>'
+		html += '<th>Тип задачи</th>'
 		html += '<th>Название</th>'
 		html += '<th>QA</th>'
 		html += '<th>Test Casses</th>'

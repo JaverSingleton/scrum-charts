@@ -44,7 +44,7 @@ var Issues =  {
 
 		html += '<thead>'
 		html += '<tr>'
-		html += '<th>Номер</th>'
+		html += '<th>Номер задачи</th>'
 		html += '<th>Название</th>'
 		html += '<th>QA</th>'
 		html += '<th>Test Casses</th>'

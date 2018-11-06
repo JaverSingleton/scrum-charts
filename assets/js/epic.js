@@ -9,6 +9,7 @@ var Chart = {
         enabled: false
       },
       chart: {
+          backgroundColor: 'rgba(0, 0, 0, 0)',
           renderTo: 'chart',
           type: 'bar',
           spacingBottom: 30,

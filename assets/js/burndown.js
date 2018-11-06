@@ -12,6 +12,7 @@ var Chart = {
         enabled: false
       },
       chart: {
+          backgroundColor: 'rgba(0, 0, 0, 0)',
           renderTo: 'chart',
           spacingBottom: 30,
           spacingTop: 65,

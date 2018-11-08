@@ -10,42 +10,68 @@ import (
 	"github.com/JaverSingleton/scrum-charts/config"
 )
 
-func GetPlanningInfo(config config.Config, credentials config.Credentials, assignee string) (PlanningInfo, error) {
-	var teamQuery string
-	if (config.Team != "") {
-		teamQuery = " AND (\"Feature Team\" is EMPTY OR \"Feature Team\" = " + config.Team + ")"
-	}
+func GetPlanningInfo(config config.Config, credentials config.Credentials, teams map[string]config.FeatureTeam) (PlanningInfo, error) {
+	// var teamQuery string
+	// if (config.Team != "") {
+	// 	teamQuery = " AND (\"Feature Team\" is EMPTY OR \"Feature Team\" = " + config.Team + ")"
+	// }
 
 	var jql string = "Sprint = " + strconv.Itoa(config.Code) + " AND " + 
-		"type != Epic AND type != Story" + 
-		teamQuery
+		"type != Epic AND type != Story"
+
     var plannedIssues []Issue 
     log.Println("Planned Issues getting: Start")
 	if plannedIssuesSearch, err := jira.FindByJql(config, credentials, jql); err == nil {
     	log.Println("Planned Issues getting: Completed")
-    	plannedIssues = convert(plannedIssuesSearch, assignee)
+    	plannedIssues = convert(plannedIssuesSearch)
 	}
 
 	jql = "Sprint = " + strconv.Itoa(config.PrevCode) + " AND " + 
 		"Sprint != " + strconv.Itoa(config.Code) + " AND " + 
 		"type != Epic AND type != Story" + " AND " +
-		"resolutiondate is EMPTY" + 
-		teamQuery
+		"resolutiondate is EMPTY"
+
     var lostIssues []Issue 
     log.Println("Lost Issues getting: Start")
 	if lostIssuesSearch, err := jira.FindByJql(config, credentials, jql); err == nil {
     	log.Println("Lost Issues getting: Completed")
-		lostIssues = convert(lostIssuesSearch, assignee)
+		lostIssues = convert(lostIssuesSearch)
+	}
+
+	team := teams[config.Team]
+	users := make(map[string]User)
+
+	for _, teamUser := range team.Users {
+		users[teamUser] = createUser(teamUser, plannedIssues, lostIssues)
 	}
     
     return PlanningInfo { 
-    	PlannedIssues: plannedIssues,
-    	LostIssues: lostIssues,
-    	MaxStoryPoints: config.SpPerDay * float64(calculateDatesDelta(config.StartDate, config.FinishDate) - len(config.Weekend) - 2),
+    	Users: users,
+    	MaxStoryPoints: team.SpPerDay * float64(calculateDatesDelta(config.StartDate, config.FinishDate) - len(config.Weekend) - 2),
     }, nil
 }
 
-func convert(jiraSearch jira.Search, assignee string) []Issue {
+func createUser(assignee string, plannedIssues []Issue, lostIssues []Issue) User {
+	var userPlannedIssues []Issue = make([]Issue, 0)
+	for _, issue := range plannedIssues {
+		if (issue.Assignee == assignee) {
+			userPlannedIssues = append(userPlannedIssues, issue)
+		}
+	}
+	var userLostIssues []Issue = make([]Issue, 0)
+	for _, issue := range lostIssues {
+		if (issue.Assignee == assignee) {
+			userLostIssues = append(userLostIssues, issue)
+		}
+	}
+	return User {
+		Name: assignee,
+		PlannedIssues: userPlannedIssues,
+		LostIssues: userLostIssues,
+	}
+}
+
+func convert(jiraSearch jira.Search) []Issue {
     log.Println("Issues processing: Start")
 	var result []Issue = make([]Issue, 0)
 	issues := make(map[string]Issue)
@@ -57,9 +83,7 @@ func convert(jiraSearch jira.Search, assignee string) []Issue {
 		if issue, ok := issues[jiraIssue.Key]; ok {
 			issue.QA = findTestIssue(issues, jiraIssue)
 			issue.TestCases = findTestCassesIssue(issues, jiraIssue)
-			if (jiraIssue.Fields.Assignee.Name == assignee) {
-				result = append(result, issue)
-			}
+			result = append(result, issue)
 		}
 	}
     log.Println("Issues processing: Completed")
@@ -153,6 +177,11 @@ func calculateDatesDelta(startDate string, finishDate string) int {
 
 type PlanningInfo struct {
 	MaxStoryPoints float64 `json:"maxStoryPoints"`
+	Users map[string]User `json:"users"`
+}
+
+type User struct {
+    Name string `json:"name"`
 	PlannedIssues []Issue `json:"plannedIssues"`
 	LostIssues []Issue `json:"lostIssues"`
 }

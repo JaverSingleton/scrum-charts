@@ -1,6 +1,30 @@
 var Chart = {
 
-  draw : function (issues, maxStoryPoints) {
+  draw : function (users, maxStoryPoints, selectedUser) {
+    var platformColors = {
+      'Backend': 'rgb(252,98,103)',
+      'Frontend': 'rgb(160,110,244)',
+      'Android': `rgb(152,205,56)`,
+      'iOS': `rgb(149,175,192)`,
+      'QA': `rgb(29,172,252)`,
+      'QA-Dev': `rgb(29,172,252)`
+    }
+    var inactivePlatformColors = {
+      'Backend': 'rgba(252,98,103,0.5)',
+      'Frontend': 'rgba(160,110,244,0.5)',
+      'Android': `rgba(152,205,56,0.5)`,
+      'iOS': `rgba(149,175,192,0.5)`,
+      'QA': `rgba(29,172,252,0.5)`,
+      'QA-Dev': `rgba(29,172,252,0.5)`
+    }
+    var categories = Object.keys(users).sort()
+    var categoriesIssues = categories.map(function(category) {
+        return {
+          issues: users[category].plannedIssues,
+          assignee: category
+        }
+      }
+    ) 
     var chart = new Highcharts.Chart({
       credits: {
         enabled: false
@@ -29,9 +53,7 @@ var Chart = {
         }
       },
       xAxis: {
-        title: {
-            text: 'Issues',
-        }
+        categories: categories
       },
       yAxis: {
         title: {
@@ -66,18 +88,18 @@ var Chart = {
           }
           var s = '<b>' + resultStoryPoints + " (" + this.point.platform + ')</b>';
 
-          if (this.point.issues) {
-            this.point.issues.forEach(function(issue) {
-              s += '<br/>'
-              var storyPoints = 0
-              if (issue.closeDate) {
-                storyPoints -= issue.storyPoints
-              } else {
-                storyPoints += issue.storyPoints
-              }
-              s += (storyPoints)+ ": " + issue.key + " - " + issue.name;
-            })
-          }
+          // if (this.point.issues) {
+          //   this.point.issues.forEach(function(issue) {
+          //     s += '<br/>'
+          //     var storyPoints = 0
+          //     if (issue.closeDate) {
+          //       storyPoints -= issue.storyPoints
+          //     } else {
+          //       storyPoints += issue.storyPoints
+          //     }
+          //     s += (storyPoints)+ ": " + issue.key + " - " + issue.name;
+          //   })
+          // }
 
           return s;
         }
@@ -86,50 +108,69 @@ var Chart = {
         color: 'rgb(252,98,103)',
         name: 'Backend',
         borderWidth: 0,
-        data: getPlatformIssues(issues, "Backend")
+        data: getPlatformIssues(categoriesIssues, "Backend")
       }, {
         color: 'rgb(160,110,244)',
         name: 'Frontend',
         borderWidth: 0,
-        data: getPlatformIssues(issues, "Frontend")
+        data: getPlatformIssues(categoriesIssues, "Frontend")
       }, {
         color: 'rgb(152,205,56)',
         name: 'Android',
         borderWidth: 0,
-        data: getPlatformIssues(issues, "Android")
+        data: getPlatformIssues(categoriesIssues, "Android")
       }, {
         color: 'rgb(149,175,192)',
         name: 'iOS',
         borderWidth: 0,
-        data: getPlatformIssues(issues, "iOS")
+        data: getPlatformIssues(categoriesIssues, "iOS")
       }, {
         color: 'rgb(29,172,252)',
         name: 'QA',
         borderWidth: 0,
-        data: getPlatformIssues(issues, "QA")
+        data: getPlatformIssues(categoriesIssues, "QA")
       }, {
         color: 'rgb(29,172,252)',
         name: 'QA-Dev',
         borderWidth: 0,
-        data: getPlatformIssues(issues, "QA-Dev")
+        data: getPlatformIssues(categoriesIssues, "QA-Dev")
       }]
     });
 
-    function getPlatformIssues(issues, category) {
-      var currentTime = new Date().getTime()
-      var filteredIssues = issues
-          .filter(issue => issue.platform == category)
-      var storyPoints = filteredIssues
-        .map(issue => issue.storyPoints)
-        .reduce (function(result, storyPoints){
-          return result + storyPoints
-        }, 0)
+    function getPlatformIssues(categoriesIssues, platform) {
+      return categoriesIssues.map(function(assigneeWithIssues) {
+        var issues = assigneeWithIssues.issues
+        var assignee = assigneeWithIssues.assignee
+        var filteredIssues = issues
+          .filter(issue => issue.platform == platform)
+        var storyPoints = filteredIssues
+          .map(issue => issue.storyPoints)
+          .reduce (function(result, storyPoints){
+            return result + storyPoints
+          }, 0)
 
-      return [{ 
-        issues: filteredIssues,
-        platform: category,
-        y: storyPoints
-      }]
+        var color = inactivePlatformColors[platform]
+        if (assignee == selectedUser || selectedUser == null) {
+          color = platformColors[platform]
+        }
+
+        return { 
+          issues: filteredIssues,
+          platform: platform,
+          y: storyPoints,
+          assignee: assignee,
+          color: color,
+          events: {
+            click: function() {
+              if (this.assignee == selectedUser) {
+                window.location.href = $.query.set("assignee", "")
+              } else {
+                window.location.href = $.query.set("assignee", this.assignee)
+              }
+            }
+          }
+        }
+      })
     }
 
   }

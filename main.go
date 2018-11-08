@@ -106,33 +106,28 @@ func planningInfo(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	teams, err := config.GetTeams()
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	config, err := config.GetConfig()
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	var assignee string
-	if array, ok := r.URL.Query()["assignee"]; ok && len(array) > 0 {    
-		assignee = array[0]
-	}
 	if array, ok := r.URL.Query()["team"]; ok && len(array) > 0 {    
 		config.Team = array[0]
 	}
 	log.Println("Get Planning Info")
-	info, err := planning.GetPlanningInfo(config, credentials, assignee)
+	info, err := planning.GetPlanningInfo(config, credentials, teams)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	// log.Println("Marshal JSON")
-	// js, err := json.Marshal(info)
-	// if err != nil {
-	// 	log.Println(err.Error())
-	// 	http.Error(w, err.Error(), http.StatusInternalServerError)
-	// 	return
-	// }
 	params := struct {
 		PlanningInfo planning.PlanningInfo
 	} {

@@ -11,10 +11,6 @@ import (
 )
 
 func GetPlanningInfo(config config.Config, credentials config.Credentials, teams map[string]config.FeatureTeam) (PlanningInfo, error) {
-	// var teamQuery string
-	// if (config.Team != "") {
-	// 	teamQuery = " AND (\"Feature Team\" is EMPTY OR \"Feature Team\" = " + config.Team + ")"
-	// }
 
 	var jql string = "Sprint = " + strconv.Itoa(config.Code) + " AND " + 
 		"type != Epic AND type != Story"
@@ -81,8 +77,12 @@ func convert(jiraSearch jira.Search) []Issue {
 	for _, jiraIssue := range jiraSearch.Issues {
     	log.Println("Issue " + jiraIssue.Key + " processing")
 		if issue, ok := issues[jiraIssue.Key]; ok {
-			issue.QA = findTestIssue(issues, jiraIssue)
-			issue.TestCases = findTestCassesIssue(issues, jiraIssue)
+			if (issue.Type == "QA") {
+				issue.Development = findDevelopmentIssue(issues, jiraIssue)
+			} else {
+				issue.QA = findTestIssue(issues, jiraIssue)
+				issue.TestCases = findTestCassesIssue(issues, jiraIssue)
+			}
 			result = append(result, issue)
 		}
 	}
@@ -126,6 +126,15 @@ func findTestCassesIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue
 	return nil
 }
 
+func findDevelopmentIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue {
+	developmentIssues := findDevelopmentIssues(issues, targetIssue)
+	if (len(developmentIssues) > 0) {
+		return &developmentIssues[0]
+	} else {
+		return nil
+	}
+}
+
 func findQaIssue(issues map[string]Issue, targetIssue jira.Issue) (result []Issue) {
 	for _, link := range targetIssue.Fields.Issuelinks {
 		if (link.Type.Name == "Blocks" && link.OutwardIssue.Fields.Issuetype.Name == "QA") {
@@ -142,6 +151,29 @@ func findQaIssue(issues map[string]Issue, targetIssue jira.Issue) (result []Issu
 				}
 				result = append(result, qaIssue)
 			}
+		}
+	}
+	return
+}
+
+func findDevelopmentIssues(issues map[string]Issue, targetIssue jira.Issue) (result []Issue) {
+	for _, link := range targetIssue.Fields.Issuelinks {
+		if (link.Type.Name == "Blocks" && link.InwardIssue.Fields.Issuetype.Name != "QA") {
+			foundIssue, hasIssue := issues[link.InwardIssue.Key]
+			var assignee = ""
+			if (hasIssue) {
+				assignee = foundIssue.Assignee
+			}
+			developmentIssue := Issue {
+				Assignee: assignee,
+				Key: link.InwardIssue.Key,
+				Name: link.InwardIssue.Fields.Summary,
+				OutSprint: !hasIssue,
+				Type: link.InwardIssue.Fields.Issuetype.Name,
+				Uri: createUri(link.InwardIssue.Key),
+				IsResolved: link.InwardIssue.Fields.Status.Category.Key == "done",
+			}
+			result = append(result, developmentIssue)
 		}
 	}
 	return
@@ -189,6 +221,7 @@ type User struct {
 type Issue struct {
     Key string `json:"key"`
     Name string `json:"name"`
+    Development *Issue `json:"development"`
     QA *Issue `json:"qa"`
     TestCases *Issue `json:"testCasses"`
     StoryPoints float64 `json:"storyPoints"`

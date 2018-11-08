@@ -106,6 +106,7 @@ type JiraLink struct {
     Id string `json:"id"`
     Type JiraType `json:"type"`
     OutwardIssue Issue `json:"outwardIssue"`
+    InwardIssue Issue `json:"inwardIssue"`
 }
 
 type JiraComponent struct {

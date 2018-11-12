@@ -114,6 +114,7 @@ var Issues = {
 			if (issue.storyPoints != null) {
 				storyPoints = issue.storyPoints
 			}
+			html += Table.column(storyPoints)
 
 			html += '</tr>'
 			return html

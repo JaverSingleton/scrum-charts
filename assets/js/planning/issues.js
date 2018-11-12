@@ -110,7 +110,10 @@ var Issues = {
 			} else {
 				html += Table.column("")
 			}
-			html += Table.column(issue.storyPoints)
+			var storyPoints = "НЕ УКАЗАНО!"
+			if (issue.storyPoints != null) {
+				storyPoints = issue.storyPoints
+			}
 
 			html += '</tr>'
 			return html

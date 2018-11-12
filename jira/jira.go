@@ -79,7 +79,7 @@ type Issue struct {
 }
 
 type JiraFields struct {
-    Customfield_10212 float64 `json:"customfield_10212"`
+    Customfield_10212 *float64 `json:"customfield_10212"`
     Resolutiondate string `json:"resolutiondate"`
     Summary string `json:"summary"`
     Issuetype JiraType `json:"issuetype"`

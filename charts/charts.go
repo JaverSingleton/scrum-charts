@@ -125,9 +125,14 @@ func convertJiraIssue(stories map[string]string, jiraIssue jira.Issue) (string, 
 		"Epic",
 	}
 
+	var storyPoints = float64(0)
+	if (jiraIssue.Fields.Customfield_10212 != nil) {
+		storyPoints = *jiraIssue.Fields.Customfield_10212
+	}
+
 	return jiraIssue.Key, Issue {
 		Key: jiraIssue.Key,
-		StoryPoints: jiraIssue.Fields.Customfield_10212,
+		StoryPoints: storyPoints,
 		CloseDate: resolutionDate,
 		Title: jiraIssue.Fields.Summary,
 		Parents: blocks,

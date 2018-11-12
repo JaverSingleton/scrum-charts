@@ -19,6 +19,19 @@
     <script src="assets/js/planning/chart.js"></script>
     <script src="assets/js/planning/issues.js"></script>
 
+    <script>
+    	var qaPlannedIssues = [];
+    	var qaLostIssues = [];
+    	var developmentPlannedIssues = [];
+    	var developmentLostIssues = [];
+    	if (planningInfo.users[assignee]) {
+    		qaPlannedIssues = Issues.qaOnly(planningInfo.users[assignee].plannedIssues)
+    		qaLostIssues = Issues.qaOnly(planningInfo.users[assignee].lostIssues)
+    		developmentPlannedIssues = Issues.developmentOnly(planningInfo.users[assignee].plannedIssues)
+    		developmentLostIssues = Issues.developmentOnly(planningInfo.users[assignee].lostIssues)
+    	}
+    </script>
+
 	<div class="container">
 
 		<div class="bs-docs-section">
@@ -34,26 +47,66 @@
 		</div>
 
 		<div class="bs-docs-section">
-	        <div class="row">
+	        <div class="row" style="margin-bottom: 2rem;">
 	          	<div class="col-lg-12">
-	          		<div class="bs-component">
-				    	<script>
-					    	if (assignee != null) {
-					    		document.write(`
-									<div class="page-header">
-								    	<h5>Planned Issues:</h4>
-									</div>
-				    			`)
-					    		Issues.draw(planningInfo.users[assignee].plannedIssues)
-					    		document.write(`
-									<div class="page-header">
-								    	<h5>Lost Issues:</h4>
-									</div>
-				    			`)
-					    		Issues.draw(planningInfo.users[assignee].lostIssues)
-					    	}
-				    	</script>
-					</div>
+	            	<div class="bs-component">
+		              	<ul class="nav nav-tabs">
+		                	<li class="nav-item">
+		                  		<a class="nav-link" id="development-tab" data-toggle="tab" href="#development-content" style="display: none;">Development</a>
+		                	</li>
+		                	<li class="nav-item">
+		                  		<a class="nav-link" id="testing-tab" data-toggle="tab" href="#testing-content" style="display: none;">Testing</a>
+		               		</li>
+		              	</ul>
+		              	<div id="myTabContent" class="tab-content" style="margin-top: 2rem;">
+		                	<div class="tab-pane" id="development-content">
+								<div class="bs-component">
+							    	<script>
+							    		if (developmentPlannedIssues.length > 0) {
+								    		document.write(`
+												<div class="page-header">
+											    	<h5>Planned Issues:</h4>
+												</div>
+							    			`)
+								    		Issues.drawDevelopment(developmentPlannedIssues)
+								    	}
+
+							    		if (developmentLostIssues.length > 0) {
+								    		document.write(`
+												<div class="page-header">
+											    	<h5>Lost Issues:</h4>
+												</div>
+							    			`)
+								    		Issues.drawDevelopment(developmentLostIssues)
+								    	}
+							    	</script>
+								</div>
+		                	</div>
+		                	<div class="tab-pane" id="testing-content">
+								<div class="bs-component">
+							    	<script>
+							    		if (qaPlannedIssues.length > 0) {
+								    		document.write(`
+												<div class="page-header">
+											    	<h5>Planned Issues:</h4>
+												</div>
+							    			`)
+								    		Issues.drawTesting(qaPlannedIssues)
+								    	}
+
+							    		if (qaLostIssues.length > 0) {
+								    		document.write(`
+												<div class="page-header">
+											    	<h5>Lost Issues:</h4>
+												</div>
+							    			`)
+								    		Issues.drawTesting(qaLostIssues)
+								    	}
+							    	</script>
+								</div>
+		                	</div>
+		                </div>
+	              	</div>
 	            </div>
           	</div>
 	    </div>
@@ -61,9 +114,23 @@
 	</div>
 
     <script>
+    	var hasDevelopment = developmentPlannedIssues.length > 0 || developmentLostIssues.length > 0
+    	if (hasDevelopment) {
+	    	document.getElementById('development-tab').style.display = 'block';
+	    }
+    	var hasTesting = qaPlannedIssues.length > 0 || qaLostIssues.length > 0
+    	if (hasTesting) {
+	    	document.getElementById('testing-tab').style.display = 'block';
+	    }
+	    if (hasDevelopment) {
+	    	$('#development-tab').tab('show')
+	    } else if(hasTesting) {
+	    	$('#testing-tab').tab('show')
+	    }
+    </script>
+
+    <script>
     	Chart.draw(planningInfo.users, planningInfo.maxStoryPoints, assignee)
-
-
     </script>
 
 {{ end }}

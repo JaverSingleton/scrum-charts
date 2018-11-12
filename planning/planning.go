@@ -224,7 +224,7 @@ type Issue struct {
     Development *Issue `json:"development"`
     QA *Issue `json:"qa"`
     TestCases *Issue `json:"testCasses"`
-    StoryPoints float64 `json:"storyPoints"`
+    StoryPoints *float64 `json:"storyPoints"`
     Type string `json:"type"`
     Assignee string `json:"assignee"`
     Platform string `json:"platform"`

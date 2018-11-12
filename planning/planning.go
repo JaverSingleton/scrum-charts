@@ -137,7 +137,7 @@ func findDevelopmentIssue(issues map[string]Issue, targetIssue jira.Issue) *Issu
 
 func findQaIssue(issues map[string]Issue, targetIssue jira.Issue) (result []Issue) {
 	for _, link := range targetIssue.Fields.Issuelinks {
-		if (link.Type.Name == "Blocks" && link.InwardIssue.Key != "" && link.OutwardIssue.Fields.Issuetype.Name == "QA") {
+		if (link.Type.Name == "Blocks" && link.OutwardIssue.Key != "" && link.OutwardIssue.Fields.Issuetype.Name == "QA") {
 			if qaIssue, ok := issues[link.OutwardIssue.Key]; ok {  
 				result = append(result, qaIssue)
 			} else {

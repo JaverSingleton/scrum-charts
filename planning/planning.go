@@ -118,7 +118,7 @@ func findTestIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue {
 func findTestCassesIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue {
 	qaIssues := findQaIssue(issues, targetIssue)
 	for _, qaIssue := range qaIssues {
-		if hasTestsCassesSubstring(qaIssue.Name) {    
+		if hasTestsCassesSubstring(qaIssue.Name)   {    
 			return &qaIssue
 		} 
 	}
@@ -139,7 +139,9 @@ func findQaIssue(issues map[string]Issue, targetIssue jira.Issue) (result []Issu
 	for _, link := range targetIssue.Fields.Issuelinks {
 		if (link.Type.Name == "Blocks" && link.OutwardIssue.Key != "" && link.OutwardIssue.Fields.Issuetype.Name == "QA") {
 			if qaIssue, ok := issues[link.OutwardIssue.Key]; ok {  
-				result = append(result, qaIssue)
+				if (qaIssue.Platform == "QA") {
+					result = append(result, qaIssue)
+				}
 			} else {
 				qaIssue := Issue {
 					Key: link.OutwardIssue.Key,

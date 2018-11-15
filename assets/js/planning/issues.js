@@ -37,11 +37,11 @@ var Table = {
 var Issues = {
 
 	developmentOnly: function(issues) {
-		return issues.filter(issue => issues && issue.type != "QA")
+		return issues.filter(issue => issues && issue.platform != "QA")
 	},
 
 	qaOnly: function(issues) {
-		return issues.filter(issue => issues && issue.type == "QA")
+		return issues.filter(issue => issues && issue.platform == "QA")
 	},
 
 	drawDevelopment: function(issues) {
@@ -86,7 +86,7 @@ var Issues = {
 
 		html += '<tbody>'
 		html += issues.reduce (function(result, issue){ 
-			if (issue.type != "QA") {
+			if (issue.platform != "QA") {
 				return result + row(issue) 
 			} else {
 				return result
@@ -103,7 +103,7 @@ var Issues = {
 		function row(issue) {
 			var html = '<tr>'
 
-			html += '<th scope="row">' + issue.platform + '</td>'
+			html += '<th scope="row">' + issue.type + '</td>'
 			html += Table.column(Table.link(Table.strikeResolved(issue.name, issue), issue.uri))
 			if (issue.development != null) {
 				html += Table.assignee(issue.development)
@@ -134,7 +134,7 @@ var Issues = {
 
 		html += '<tbody>'
 		html += issues.reduce (function(result, issue){ 
-			if (issue.type == "QA") {
+			if (issue.platform == "QA") {
 				return result + row(issue) 
 			} else {
 				return result

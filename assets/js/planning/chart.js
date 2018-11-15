@@ -3,19 +3,19 @@ var Chart = {
   draw : function (users, maxStoryPoints, selectedUser) {
     var platformColors = {
       'Backend': 'rgb(252,98,103)',
-      'Frontend': 'rgb(160,110,244)',
+      'Frontend': 'rgb(245,223,79)',
       'Android': `rgb(152,205,56)`,
       'iOS': `rgb(149,175,192)`,
-      'QA': `rgb(29,172,252)`,
-      'QA-Dev': `rgb(29,172,252)`
+      'QA-Dev': `rgb(160,110,244)`,
+      'QA': `rgb(29,172,252)`
     }
     var inactivePlatformColors = {
       'Backend': 'rgba(252,98,103,0.5)',
-      'Frontend': 'rgba(160,110,244,0.5)',
+      'Frontend': 'rgba(245,223,79,0.5)',
       'Android': `rgba(152,205,56,0.5)`,
       'iOS': `rgba(149,175,192,0.5)`,
-      'QA': `rgba(29,172,252,0.5)`,
-      'QA-Dev': `rgba(29,172,252,0.5)`
+      'QA-Dev': `rgba(160,110,244,0.5)`,
+      'QA': `rgba(29,172,252,0.5)`
     }
     var categories = Object.keys(users).sort()
     var categoriesIssues = categories.map(function(category) {

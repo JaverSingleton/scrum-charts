@@ -3,9 +3,11 @@ var Chart = {
   draw : function (sprint) {
     var sprintIssues = sprint.issues
         .filter(issue => !issue.isStory)
-    var categories = ["Backend", "Frontend", "Android", "iOS", "QA"]
+    var categories = ["Backend", "Frontend", "Android", "iOS", "QA-Dev", "QA"]
     var groupIssues = categories
         .map(category => calculateStories(sprintIssues, category))
+        .filter(group => group.allStoryPoints > 0)
+    categories = groupIssues.map(group => group.platform)
     var summary = calculateSummary(groupIssues)
     var idealPercent = calculateIdealPercent(sprint.dates, sprint.weekend)
     var chart = new Highcharts.Chart({
@@ -58,9 +60,10 @@ var Chart = {
       colors: [
         'rgb(242,148,63)',
         'rgb(252,98,103)',
-        'rgb(160,110,244)',
+        'rgb(245,223,79)',
         'rgb(152,205,56)',
         'rgb(149,175,192)',
+        'rgb(160,110,244)',
         'rgb(29,172,252)',
       ],
       legend: {
@@ -110,43 +113,13 @@ var Chart = {
           return result + storyPoints
         }, 0)
 
-      var percent = 100.0
+      var percent = 0.0
       if (allStoryPoints > 0) {
         percent = storyPoints / allStoryPoints * 100
       }
 
       return { 
-          issues: closedIssues,
-          platform: category,
-          y: percent
-        }
-    }
-
-    function calculateStories(issues, category) {
-      var allIssues = issues
-        .filter(issue => issue.platforms.some(platform => platform == category))
-      var closedIssues = allIssues
-        .filter(function (issue) { 
-          return issue.closeDate != null || issue.isDone
-        })
-        
-      var allStoryPoints = allIssues
-        .map(issue => issue.storyPoints)
-        .reduce (function(result, storyPoints){
-          return result + storyPoints
-        }, 0)
-      var storyPoints = closedIssues
-        .map(issue => issue.storyPoints)
-        .reduce (function(result, storyPoints){
-          return result + storyPoints
-        }, 0)
-
-      var percent = 100.0
-      if (allStoryPoints > 0) {
-        percent = storyPoints / allStoryPoints * 100
-      }
-
-      return { 
+          allStoryPoints: allStoryPoints,
           allIssues: allIssues,
           issues: closedIssues,
           platform: category,

@@ -82,13 +82,13 @@ var Chart = {
         borderWidth: 0,
         data: calculateStories(categoriesIssues, "Backend", false)
       }, {
-        color: 'rgb(160,110,244)',
+        color: 'rgb(245,223,79)',
         name: 'Frontend',
         borderWidth: 1,
         data: calculateStories(categoriesIssues, "Frontend", true)
       }, {
         linkedTo:':previous',
-        color: 'rgb(160,110,244)',
+        color: 'rgb(245,223,79)',
         name: 'Frontend',
         borderWidth: 0,
         data: calculateStories(categoriesIssues, "Frontend", false)
@@ -114,6 +114,17 @@ var Chart = {
         name: 'iOS',
         borderWidth: 0,
         data: calculateStories(categoriesIssues, "iOS", false)
+      }, {
+        color: 'rgb(160,110,244)',
+        name: 'QA-Dev',
+        borderWidth: 1,
+        data: calculateStories(categoriesIssues, "QA-Dev", true)
+      }, {
+        linkedTo:':previous',
+        color: 'rgb(160,110,244)',
+        name: 'QA-Dev',
+        borderWidth: 0,
+        data: calculateStories(categoriesIssues, "QA-Dev", false)
       }, {
         color: 'rgb(29,172,252)',
         name: 'QA',

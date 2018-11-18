@@ -1,8 +1,11 @@
 package config
 
 import (
+	"log"
 	"encoding/json"
     "io/ioutil"
+    "os"
+    "path/filepath"
 )
 
 type Config struct {
@@ -19,7 +22,7 @@ type Config struct {
 }
 
 func GetConfig() (Config, error) {
-	configBytes, err := ioutil.ReadFile("config.json")
+	configBytes, err := ioutil.ReadFile(InExecutionDirectory("config.json"))
     if err != nil {
         return Config {}, err
     }
@@ -29,4 +32,14 @@ func GetConfig() (Config, error) {
 	}
 
 	return config, nil
+}
+
+func InExecutionDirectory(file string) string {
+	ex, err := os.Executable()
+    if err != nil {
+    	log.Println(err)
+        return file
+    }
+    exPath := filepath.Dir(ex)
+    return exPath + "/" + file
 }

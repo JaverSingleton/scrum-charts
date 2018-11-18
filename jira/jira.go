@@ -39,7 +39,8 @@ func FindByJql(config config.Config, credentials config.Credentials, jql string)
 	if (err != nil) {
     	return Search {}, err
 	}
-    req.SetBasicAuth(credentials.Login, credentials.Password)
+    req.Header.Add("Authorization","Basic " + credentials.GetBasicAuth())
+    // req.SetBasicAuth(credentials.Login, credentials.Password)
 	client := &http.Client {}
     log.Println("Do Request:", Url.String())
 	response, err := client.Do(req)

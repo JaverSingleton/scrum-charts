@@ -214,6 +214,7 @@ func invalidateCache(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
+	config.UpdateCredentialsFile()
 	fmt.Println("Listening on port :3000")
 
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/"))))

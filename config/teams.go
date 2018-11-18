@@ -12,7 +12,7 @@ type FeatureTeam struct {
 
 func GetTeams() (map[string]FeatureTeam, error) {
     var teams = make(map[string]FeatureTeam)
-	teamsByters, err := ioutil.ReadFile("teams.json")
+	teamsByters, err := ioutil.ReadFile(InExecutionDirectory("teams.json"))
     if err != nil {
         return teams, err
     }

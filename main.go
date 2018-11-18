@@ -93,7 +93,7 @@ func burndown(w http.ResponseWriter, r *http.Request) {
 }
 
 func planningInfo(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("assets/templates/planning.html")
+	t, err := template.ParseFiles(config.InExecutionDirectory("assets/templates/planning.html"))
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 		return

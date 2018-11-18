@@ -15,7 +15,7 @@ import (
 )
 
 func platforms(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("assets/templates/platforms.html")
+	t, err := template.ParseFiles(config.InExecutionDirectory("assets/templates/platforms.html"))
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 		return
@@ -41,7 +41,7 @@ func platforms(w http.ResponseWriter, r *http.Request) {
 }
 
 func epic(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("assets/templates/epic.html")
+	t, err := template.ParseFiles(config.InExecutionDirectory("assets/templates/epic.html"))
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 		return
@@ -67,7 +67,7 @@ func epic(w http.ResponseWriter, r *http.Request) {
 }
 
 func burndown(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("assets/templates/burndown.html")
+	t, err := template.ParseFiles(config.InExecutionDirectory("assets/templates/burndown.html"))
 	if err != nil {
 		fmt.Fprintf(w, err.Error())
 		return
@@ -217,7 +217,7 @@ func main() {
 	config.UpdateCredentialsFile()
 	fmt.Println("Listening on port :3000")
 
-	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets/"))))
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(config.InExecutionDirectory("assets/")))))
 	http.HandleFunc("/burndown", burndown)
 	http.HandleFunc("/epic", epic)
 	http.HandleFunc("/platforms", platforms)

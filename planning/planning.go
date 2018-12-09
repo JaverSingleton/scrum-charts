@@ -13,7 +13,7 @@ import (
 func GetPlanningInfo(config config.Config, credentials config.Credentials, teams map[string]config.FeatureTeam) (PlanningInfo, error) {
 
 	var jql string = "Sprint = " + strconv.Itoa(config.Code) + " AND " + 
-		"type != Epic AND type != Story"
+		"type != Story"
 
     var plannedIssues []Issue 
     log.Println("Planned Issues getting: Start")
@@ -79,9 +79,11 @@ func convert(jiraSearch jira.Search) []Issue {
 		if issue, ok := issues[jiraIssue.Key]; ok {
 			if (issue.Type == "QA") {
 				issue.Development = findDevelopmentIssue(issues, jiraIssue)
-			} else {
+				issue.Epic = findEpicIssue(issues, jiraIssue)
+			} else if (issue.Type != "Epic"){
 				issue.QA = findTestIssue(issues, jiraIssue)
 				issue.TestCases = findTestCassesIssue(issues, jiraIssue)
+				issue.Epic = findEpicIssue(issues, jiraIssue)
 			}
 			result = append(result, issue)
 		}
@@ -124,6 +126,23 @@ func findTestCassesIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue
 	}
 
 	return nil
+}
+
+func findEpicIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue {
+	if (targetIssue.Fields.Epic == "") {
+		return nil
+	}
+	if epic, ok := issues[targetIssue.Fields.Epic]; ok {  
+		return &epic
+	} else {
+		return &Issue {
+			Key: targetIssue.Fields.Epic,
+			OutSprint: true,
+			Type: "Epic",
+			Uri: createUri(targetIssue.Fields.Epic),
+			IsResolved: false,
+		}
+	}
 }
 
 func findDevelopmentIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue {
@@ -225,6 +244,7 @@ type Issue struct {
     Name string `json:"name"`
     Development *Issue `json:"development"`
     QA *Issue `json:"qa"`
+    Epic *Issue `json:"epic"`
     TestCases *Issue `json:"testCasses"`
     StoryPoints *float64 `json:"storyPoints"`
     Type string `json:"type"`

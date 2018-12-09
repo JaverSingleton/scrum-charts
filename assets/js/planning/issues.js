@@ -9,7 +9,7 @@ var Table = {
 	},
 
 	link: function(text, uri) {
-		return '<a href="' + uri + '">' + text + '</a>'
+		return '<a href="' + uri + '" target="_blank">' + text + '</a>'
 	},
 
 	assignee: function(issue) {
@@ -30,21 +30,52 @@ var Table = {
 
 		html += '</td>'
 		return html
-	} 
+	},
 
+	rowEpic: function(issue, spanCount) {
+		var html = '<tr>'
+
+		var name = issue.name
+		if (issue.outSprint) {
+			name = issue.key + " - НЕ В СПРИНТЕ!"
+		}
+
+		html += '<td colspan="' + spanCount + '" align="center">'
+		html += Table.link("<b>" + Table.strikeResolved(name, issue) + "</b>", issue.uri)
+		html += '</td>'
+
+		html += '</tr>'
+		return html
+	}
+
+}
+
+function qroupIssues(issues, epics) {
+	return issues.reduce(function (result, issue) {
+    	var epicKey = ""
+    	if (issue.epic != null) {
+    		epicKey = issue.epic.key
+    		epics[epicKey] = epics[epicKey] || issue.epic
+    	}
+    	result[epicKey] = result[epicKey] || [];
+        result[epicKey].push(issue);
+    	return result;
+    }, Object.create(null))
 }
 
 var Issues = {
 
 	developmentOnly: function(issues) {
-		return issues.filter(issue => issues && issue.platform != "QA")
+		return issues.filter(issue => issues && issue.platform != "QA" && issue.type != "Epic")
 	},
 
 	qaOnly: function(issues) {
-		return issues.filter(issue => issues && issue.platform == "QA")
+		return issues.filter(issue => issues && issue.platform == "QA" && issue.type != "Epic")
 	},
 
 	drawDevelopment: function(issues) {
+		var epics = []
+	    var groupedIssues = qroupIssues(issues, epics)
 
 		function row(issue) {
 			var html = '<tr>'
@@ -71,6 +102,23 @@ var Issues = {
 			return html
 		}
 
+		function section(epic, issues) {
+			var html = ''
+			if (epic != null) {
+				html += Table.rowEpic(epic, 5)
+			}
+			html += '<tr>'
+			html += issues.reduce(function(result, issue) { 
+				if (issue.platform != "QA") {
+					return result + row(issue) 
+				} else {
+					return result
+				}
+			}, "")
+			html += '</tr>'
+			return html
+		}
+
 
 		var html = '<table class="table table-bordered">'
 
@@ -85,13 +133,11 @@ var Issues = {
 		html += '</thead>'
 
 		html += '<tbody>'
-		html += issues.reduce (function(result, issue){ 
-			if (issue.platform != "QA") {
-				return result + row(issue) 
-			} else {
-				return result
-			}
-		}, "")
+		html += section(null, groupedIssues[""])
+		for (var key in epics) {
+		    var epic = epics[key];
+			html += section(epic, groupedIssues[key])
+		}
 		html += '</tbody>'
 
 		html += '</table>'
@@ -99,6 +145,8 @@ var Issues = {
 	},
 
 	drawTesting: function(issues) {
+		var epics = []
+	    var groupedIssues = qroupIssues(issues, epics)
 
 		function row(issue) {
 			var html = '<tr>'
@@ -120,6 +168,23 @@ var Issues = {
 			return html
 		}
 
+		function section(epic, issues) {
+			var html = ''
+			if (epic != null) {
+				html += Table.rowEpic(epic, 4)
+			}
+			html += '<tr>'
+			html += issues.reduce (function(result, issue){ 
+				if (issue.platform == "QA") {
+					return result + row(issue) 
+				} else {
+					return result
+				}
+			}, "")
+			html += '</tr>'
+			return html
+		}
+
 
 		var html = '<table class="table table-bordered">'
 
@@ -133,13 +198,11 @@ var Issues = {
 		html += '</thead>'
 
 		html += '<tbody>'
-		html += issues.reduce (function(result, issue){ 
-			if (issue.platform == "QA") {
-				return result + row(issue) 
-			} else {
-				return result
-			}
-		}, "")
+		html += section(null, groupedIssues[""])
+		for (var key in epics) {
+		    var epic = epics[key];
+			html += section(epic, groupedIssues[key])
+		}
 		html += '</tbody>'
 
 		html += '</table>'

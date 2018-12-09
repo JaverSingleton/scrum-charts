@@ -72,13 +72,13 @@
 		                  		<a class="nav-link" id="testing-tab" data-toggle="tab" href="#testing-content" style="display: none;">Testing</a>
 		               		</li>
 		              	</ul>
-		              	<div id="myTabContent" class="tab-content" style="margin-top: 2rem;">
+		              	<div id="myTabContent" class="tab-content">
 		                	<div class="tab-pane" id="development-content">
 								<div class="bs-component">
 							    	<script>
 							    		if (developmentPlannedIssues.length > 0) {
 								    		document.write(`
-												<div class="page-header">
+												<div class="page-header" style="margin-top: 3rem;">
 											    	<h5>Planned Issues:</h5>
 												</div>
 							    			`)
@@ -87,7 +87,7 @@
 
 							    		if (developmentLostIssues.length > 0) {
 								    		document.write(`
-												<div class="page-header">
+												<div class="page-header" style="margin-top: 3rem;">
 											    	<h5>Lost Issues:</h5>
 												</div>
 							    			`)
@@ -101,7 +101,7 @@
 							    	<script>
 							    		if (qaPlannedIssues.length > 0) {
 								    		document.write(`
-												<div class="page-header">
+												<div class="page-header" style="margin-top: 3rem;">
 											    	<h5>Planned Issues:</h5>
 												</div>
 							    			`)
@@ -110,7 +110,7 @@
 
 							    		if (qaLostIssues.length > 0) {
 								    		document.write(`
-												<div class="page-header">
+												<div class="page-header" style="margin-top: 3rem;">
 											    	<h5>Lost Issues:</h5>
 												</div>
 							    			`)

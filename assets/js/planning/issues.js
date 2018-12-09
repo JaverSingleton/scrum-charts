@@ -102,7 +102,7 @@ var Issues = {
 			return html
 		}
 
-		function section(epic, issues) {
+		function section(epic, issues = []) {
 			var html = ''
 			if (epic != null) {
 				html += Table.rowEpic(epic, 5)
@@ -168,7 +168,7 @@ var Issues = {
 			return html
 		}
 
-		function section(epic, issues) {
+		function section(epic, issues = []) {
 			var html = ''
 			if (epic != null) {
 				html += Table.rowEpic(epic, 4)

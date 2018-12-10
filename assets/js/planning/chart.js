@@ -105,32 +105,32 @@ var Chart = {
         }
       },
       series: [{
-        color: 'rgb(252,98,103)',
+        color: platformColors["Backend"],
         name: 'Backend',
         borderWidth: 0,
         data: getPlatformIssues(categoriesIssues, "Backend")
       }, {
-        color: 'rgb(160,110,244)',
+        color: platformColors["Frontend"],
         name: 'Frontend',
         borderWidth: 0,
         data: getPlatformIssues(categoriesIssues, "Frontend")
       }, {
-        color: 'rgb(152,205,56)',
+        color: platformColors["Android"],
         name: 'Android',
         borderWidth: 0,
         data: getPlatformIssues(categoriesIssues, "Android")
       }, {
-        color: 'rgb(149,175,192)',
+        color: platformColors["iOS"],
         name: 'iOS',
         borderWidth: 0,
         data: getPlatformIssues(categoriesIssues, "iOS")
       }, {
-        color: 'rgb(29,172,252)',
+        color: platformColors["QA"],
         name: 'QA',
         borderWidth: 0,
         data: getPlatformIssues(categoriesIssues, "QA")
       }, {
-        color: 'rgb(29,172,252)',
+        color: platformColors["QA-Dev"],
         name: 'QA-Dev',
         borderWidth: 0,
         data: getPlatformIssues(categoriesIssues, "QA-Dev")

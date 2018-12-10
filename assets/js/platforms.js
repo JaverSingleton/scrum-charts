@@ -1,6 +1,14 @@
 var Chart = {
 
   draw : function (sprint) {
+    var platformColors = {
+      'Backend': 'rgb(252,98,103)',
+      'Frontend': 'rgb(245,223,79)',
+      'Android': `rgb(152,205,56)`,
+      'iOS': `rgb(149,175,192)`,
+      'QA-Dev': `rgb(160,110,244)`,
+      'QA': `rgb(29,172,252)`
+    }
     var sprintIssues = sprint.issues
         .filter(issue => !issue.isStory)
     var categories = ["Backend", "Frontend", "Android", "iOS", "QA-Dev", "QA"]
@@ -57,15 +65,7 @@ var Chart = {
         min: 0, 
         max: 100
       },
-      colors: [
-        'rgb(242,148,63)',
-        'rgb(252,98,103)',
-        'rgb(245,223,79)',
-        'rgb(152,205,56)',
-        'rgb(149,175,192)',
-        'rgb(160,110,244)',
-        'rgb(29,172,252)',
-      ],
+      colors: ['rgb(242,148,63)'].concat(categories.map(category => platformColors[category])),
       legend: {
         layout: 'vertical',
         align: 'right',

@@ -24,6 +24,7 @@ func GetPlanningInfo(config config.Config, credentials config.Credentials, teams
 
 	jql = "Sprint = " + strconv.Itoa(config.PrevCode) + " AND " + 
 		"NOT Sprint in openSprints() AND " + 
+		"NOT Sprint in futureSprints() AND " + 
 		"type != Epic AND type != Story" + " AND " +
 		"resolutiondate is EMPTY"
 

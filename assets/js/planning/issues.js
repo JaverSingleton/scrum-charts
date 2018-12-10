@@ -8,8 +8,8 @@ var Table = {
 		}
 	},
 
-	link: function(text, uri) {
-		return '<a href="' + uri + '" target="_blank">' + text + '</a>'
+	link: function(text, uri, hint = "") {
+		return '<a href="' + uri + '" target="_blank" title="' + hint + '"">' + text + '</a>'
 	},
 
 	assignee: function(issue) {
@@ -20,7 +20,7 @@ var Table = {
 			text += issue.assignee
 		}
 		text = this.strikeResolved(text, issue)
-		return this.column(this.link(text, issue.uri))
+		return this.column(this.link(text, issue.uri, issue.platform))
 	},
 
 	column: function(text) {
@@ -81,7 +81,7 @@ var Issues = {
 			var html = '<tr>'
 
 			html += '<th scope="row">' + issue.type + '</td>'
-			html += Table.column(Table.link(Table.strikeResolved(issue.name, issue), issue.uri))
+			html += Table.column(Table.link(Table.strikeResolved(issue.name, issue), issue.uri, issue.platform))
 			if (issue.qa != null) {
 				html += Table.assignee(issue.qa)
 			} else {
@@ -152,7 +152,7 @@ var Issues = {
 			var html = '<tr>'
 
 			html += '<th scope="row">' + issue.type + '</td>'
-			html += Table.column(Table.link(Table.strikeResolved(issue.name, issue), issue.uri))
+			html += Table.column(Table.link(Table.strikeResolved(issue.name, issue), issue.uri, issue.platform))
 			if (issue.development != null) {
 				html += Table.assignee(issue.development)
 			} else {

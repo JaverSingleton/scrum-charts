@@ -183,11 +183,14 @@ func findDevelopmentIssues(issues map[string]Issue, targetIssue jira.Issue) (res
 		if (link.Type.Name == "Blocks" && link.InwardIssue.Key != "" && link.InwardIssue.Fields.Issuetype.Name != "QA" && link.InwardIssue.Fields.Issuetype.Name != "Story") {
 			foundIssue, hasIssue := issues[link.InwardIssue.Key]
 			var assignee = ""
+			var platform = ""
 			if (hasIssue) {
 				assignee = foundIssue.Assignee
+				platform = foundIssue.Platform
 			}
 			developmentIssue := Issue {
 				Assignee: assignee,
+				Platform: platform,
 				Key: link.InwardIssue.Key,
 				Name: link.InwardIssue.Fields.Summary,
 				OutSprint: !hasIssue,

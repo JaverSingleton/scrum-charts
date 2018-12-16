@@ -1,11 +1,8 @@
 package config
 
 import (
-	"log"
 	"encoding/json"
     "io/ioutil"
-    "os"
-    "path/filepath"
 )
 
 type Config struct {
@@ -35,11 +32,5 @@ func GetConfig() (Config, error) {
 }
 
 func InExecutionDirectory(file string) string {
-	ex, err := os.Executable()
-    if err != nil {
-    	log.Println(err)
-        return file
-    }
-    exPath := filepath.Dir(ex)
-    return exPath + "/" + file
+    return file
 }

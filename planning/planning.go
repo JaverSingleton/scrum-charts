@@ -10,33 +10,27 @@ import (
 	"github.com/JaverSingleton/scrum-charts/config"
 )
 
-func GetPlanningInfo(config config.Config, credentials config.Credentials, teams map[string]config.FeatureTeam) (PlanningInfo, error) {
-
-	var jql string = "Sprint = " + strconv.Itoa(config.Code) + " AND " + 
-		"type != Story"
-
-    var plannedIssues []Issue 
-    log.Println("Planned Issues getting: Start")
-	if plannedIssuesSearch, err := jira.FindByJql(config, credentials, jql); err == nil {
-    	log.Println("Planned Issues getting: Completed")
-    	plannedIssues = convert(plannedIssuesSearch)
+func GetPlanningInfo(manager *jira.JobManager, team *config.FeatureTeam) (PlanningInfo, error) {
+	if (team == nil) {
+		return PlanningInfo {}, nil
 	}
 
-	jql = "Sprint = " + strconv.Itoa(config.PrevCode) + " AND " + 
+	plannedJql := "Sprint = " + strconv.Itoa(manager.Config.Code) + " AND " + 
+		"type != Story"
+	plannedChannel := make(chan []Issue)
+	go find(manager, plannedJql, plannedChannel)
+
+	lostJql := "Sprint = " + strconv.Itoa(manager.Config.PrevCode) + " AND " + 
 		"NOT Sprint in openSprints() AND " + 
 		"NOT Sprint in futureSprints() AND " + 
 		"type != Epic AND type != Story" + " AND " +
 		"resolutiondate is EMPTY"
+	lostChannel := make(chan []Issue)
+	go find(manager, lostJql, lostChannel)
 
-    var lostIssues []Issue 
-    log.Println("Lost Issues getting: Start")
-	if lostIssuesSearch, err := jira.FindByJql(config, credentials, jql); err == nil {
-    	log.Println("Lost Issues getting: Completed")
-		lostIssues = convert(lostIssuesSearch)
-	}
-
-	team := teams[config.Team]
 	users := make(map[string]User)
+
+	lostIssues, plannedIssues := <- lostChannel, <- plannedChannel
 
 	for _, teamUser := range team.Users {
 		users[teamUser] = createUser(teamUser, plannedIssues, lostIssues)
@@ -44,8 +38,14 @@ func GetPlanningInfo(config config.Config, credentials config.Credentials, teams
     
     return PlanningInfo { 
     	Users: users,
-    	MaxStoryPoints: team.SpPerDay * float64(calculateDatesDelta(config.StartDate, config.FinishDate) - len(config.Weekend) - 2),
+    	MaxStoryPoints: team.SpPerDay * float64(calculateDatesDelta(manager.Config.StartDate, manager.Config.FinishDate) - len(manager.Config.Weekend) - 2),
     }, nil
+}
+
+func find(manager *jira.JobManager, jql string, issues chan<- []Issue) {
+	search := make(chan jira.Search)
+	go manager.AddJob(jql, search)
+	issues <- convert(<-search)
 }
 
 func createUser(assignee string, plannedIssues []Issue, lostIssues []Issue) User {

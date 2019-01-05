@@ -16,6 +16,7 @@ type Config struct {
 	SpPerDay float64 `json:"spPerDay"`
 	Team string `json:"team"`
 	CacheLifetime int `json:"cacheLifetime"`
+	RefreshFrequency int `json:"refreshFrequency"`
 }
 
 func GetConfig() (Config, error) {

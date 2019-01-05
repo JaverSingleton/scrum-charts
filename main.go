@@ -14,6 +14,8 @@ import (
 	"github.com/JaverSingleton/scrum-charts/planning"
 )
 
+var jobManager jira.JobManager = jira.NewJobManager()
+
 func platforms(w http.ResponseWriter, r *http.Request) {
 	t, err := template.ParseFiles(config.InExecutionDirectory("assets/templates/platforms.html"))
 	if err != nil {
@@ -98,31 +100,19 @@ func planningInfo(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, err.Error())
 		return
 	}
-	log.Println("\r\n")
-	log.Println("Get Config")
-	credentials, err := config.GetCredentials()
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
 	teams, err := config.GetTeams()
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	config, err := config.GetConfig()
-	if err != nil {
-		log.Println(err.Error())
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	var teamName = ""
 	if array, ok := r.URL.Query()["team"]; ok && len(array) > 0 {    
-		config.Team = array[0]
+		teamName = array[0]
 	}
 	log.Println("Get Planning Info")
-	info, err := planning.GetPlanningInfo(config, credentials, teams)
+	team := teams[teamName]
+	info, err := planning.GetPlanningInfo(&jobManager, &team)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -161,7 +151,7 @@ func sprintInfo(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	log.Println("Get Issues")
-	issues, err := charts.GetIssues(config, credentials)
+	issues, err := charts.GetIssues(&jobManager, config, credentials)
 	if err != nil {
 		log.Println(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -209,12 +199,21 @@ func ping(w http.ResponseWriter, r *http.Request) {
 }
 
 func invalidateCache(w http.ResponseWriter, r *http.Request) {
-	jira.InvalidateCache()
+	updateConfigurations()
+	jobManager.ClearJobs()
 	w.Write([]byte("Cache is clean"))
+}
+
+func refreshCache(w http.ResponseWriter, r *http.Request) {
+	updateConfigurations()
+	jobManager.RefreshAllWithWait()
+	w.Write([]byte("Cache is refreshed"))
 }
 
 func main() {
 	config.UpdateCredentialsFile()
+	updateConfigurations()
+	go jobManager.StartAutoRefresh()
 	fmt.Println("Listening on port :3000")
 
 	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir(config.InExecutionDirectory("assets/")))))
@@ -222,9 +221,25 @@ func main() {
 	http.HandleFunc("/epic", epic)
 	http.HandleFunc("/platforms", platforms)
 	http.HandleFunc("/ping", ping)
+	http.HandleFunc("/cache/refresh", refreshCache)
 	http.HandleFunc("/cache/invalidate", invalidateCache)
 	http.HandleFunc("/sprint", sprintInfo)
 	http.HandleFunc("/planning", planningInfo)
 
 	http.ListenAndServe(":3000", nil)
+}
+
+func updateConfigurations() {
+	credentials, err := config.GetCredentials()
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	config, err := config.GetConfig()
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+	jobManager.Config = config
+	jobManager.Credentials = credentials
 }

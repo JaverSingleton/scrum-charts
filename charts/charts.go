@@ -10,7 +10,7 @@ import (
 	"github.com/JaverSingleton/scrum-charts/config"
 )
 
-func GetIssues(config config.Config, credentials config.Credentials) ([]Issue, error) {
+func GetIssues(manager *jira.JobManager, config config.Config, credentials config.Credentials) ([]Issue, error) {
 	var jql string
 	if (config.Query != "") {
 		jql = config.Query
@@ -24,14 +24,14 @@ func GetIssues(config config.Config, credentials config.Credentials) ([]Issue, e
                 teamQuery
 	}
     log.Println("Search:", jql)
-	return search(config, credentials, jql)
+	return search(manager, config, credentials, jql)
 }
 
-func search(config config.Config, credentials config.Credentials, jql string) ([]Issue, error) { 
-	search, err := jira.FindByJql(config, credentials, jql)
-    if err != nil {
-    	return []Issue {}, err
-    }
+func search(manager *jira.JobManager, config config.Config, credentials config.Credentials, jql string) ([]Issue, error) { 
+	searchCh := make(chan jira.Search)
+	go manager.AddJob(jql, searchCh)
+	search := <-searchCh
+
 	stories := collectStories(search.Issues)
 	issues:= make([]*Issue, len(search.Issues))
 	issuesMap := make(map[string]*Issue)
@@ -40,19 +40,14 @@ func search(config config.Config, credentials config.Credentials, jql string) ([
 		issues[index] = &issue
 		issuesMap[key] = &issue
 	}
-    log.Println("Start Children processing")
 	for index, issue := range issues {
 		for _, childIssueKey := range issue.Subtasks {
-    		log.Println("Children key:", issue.Title, childIssueKey)
 			if childIssue, ok := issuesMap[childIssueKey]; ok {  
 				childIssue.Parents = issues[index].Parents
 				issues[index].IsProgress = issues[index].IsProgress || childIssue.IsProgress
 			}
 		}
-    	log.Println("Children stories:", issue.Title, issue.ChildrenStories)
 	}
-    log.Println("Finish Children processing")
-    log.Println(issues)
 
 	result:= make([]Issue, len(issues))
 	for index, issue := range issues {
@@ -76,10 +71,8 @@ func collectStories(issues []jira.Issue) map[string]string {
 }
 
 func convertJiraIssue(stories map[string]string, jiraIssue jira.Issue) (string, Issue) {
-    log.Println("Issue processing:", jiraIssue)
 	resolutionDate := convertDate(jiraIssue.Fields.Resolutiondate)
 	var blocks []string
-    log.Println("Start Blocks processing")
 	for _, element := range jiraIssue.Fields.Issuelinks {
 		if (element.Type.Name == "Blocks") {
 			if storyTitle, ok := stories[element.OutwardIssue.Key]; ok {    
@@ -94,7 +87,6 @@ func convertJiraIssue(stories map[string]string, jiraIssue jira.Issue) (string, 
 	for index, component := range jiraIssue.Fields.Components {
 		platforms[index] = component.Name
 	}
-    log.Println("Finish Blocks processing")
 	subtasks:= make([]string, len(jiraIssue.Fields.Subtasks))
 	for index, subtask := range jiraIssue.Fields.Subtasks {
 		subtasks[index] = subtask.Key
@@ -162,7 +154,6 @@ func contains(v interface{}, in interface{}) (ok bool) {
 
 func convertDate(date string) string {
 	time, err := time.Parse("2006-01-02T15:04:05-0700", date)
-    log.Println(date, time)
 	if err != nil {
 	    return ""
 	}

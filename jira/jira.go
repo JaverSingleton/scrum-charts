@@ -11,17 +11,7 @@ import (
 	"github.com/JaverSingleton/scrum-charts/config"
 )
 
-var cache = make(map[string]Search)
-
-func InvalidateCache() {
-	cache = make(map[string]Search)
-}
-
 func FindByJql(config config.Config, credentials config.Credentials, jql string) (Search, error) {
-	if search, ok := cache[jql]; ok && time.Now().Before(search.ExpiredDate){    
-		return search, nil
-	}
-
 	var Url *url.URL
     Url, err := url.Parse("https://jr.avito.ru")
     if err != nil {
@@ -40,7 +30,6 @@ func FindByJql(config config.Config, credentials config.Credentials, jql string)
     	return Search {}, err
 	}
     req.Header.Add("Authorization","Basic " + credentials.GetBasicAuth())
-    // req.SetBasicAuth(credentials.Login, credentials.Password)
 	client := &http.Client {}
     log.Println("Do Request:", Url.String())
 	response, err := client.Do(req)
@@ -60,7 +49,6 @@ func FindByJql(config config.Config, credentials config.Credentials, jql string)
 	if err = json.Unmarshal(contents, &search); err != nil {
 		return Search {}, err
 	}
-	cache[jql] = search
 	return search, nil
 }
 

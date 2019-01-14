@@ -6,8 +6,14 @@ import (
 )
 
 type FeatureTeam struct {
-	Users []string `json:"users"`
+	Users []User `json:"users"`
 	SpPerDay float64 `json:"spPerDay"`
+}
+
+type User struct {
+	Name string `json:"name"`
+	DayOff float64 `json:"dayOff"`
+	Platforms map[string]float64 `json:"platforms"`
 }
 
 func GetTeams() (map[string]FeatureTeam, error) {

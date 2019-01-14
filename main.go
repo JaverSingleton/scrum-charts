@@ -127,6 +127,39 @@ func planningInfo(w http.ResponseWriter, r *http.Request) {
 	t.ExecuteTemplate(w, "planning", params)
 }
 
+func planningInfo2(w http.ResponseWriter, r *http.Request) {
+	t, err := template.ParseFiles(config.InExecutionDirectory("assets/templates/planning2.html"))
+	if err != nil {
+		fmt.Fprintf(w, err.Error())
+		return
+	}
+	teams, err := config.GetTeams()
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	var teamName = ""
+	if array, ok := r.URL.Query()["team"]; ok && len(array) > 0 {    
+		teamName = array[0]
+	}
+	log.Println("Get Planning Info")
+	team := teams[teamName]
+	info, err := planning.GetPlanningInfo2(&jobManager, &team, teamName)
+	if err != nil {
+		log.Println(err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	params := struct {
+		PlanningInfo planning.PlanningInfo2
+	} {
+		PlanningInfo: info,
+	}
+
+	t.ExecuteTemplate(w, "planning2", params)
+}
+
 func sprintInfo(w http.ResponseWriter, r *http.Request) {
 	log.Println("\r\n")
 	log.Println("Get Config")
@@ -225,6 +258,7 @@ func main() {
 	http.HandleFunc("/cache/invalidate", invalidateCache)
 	http.HandleFunc("/sprint", sprintInfo)
 	http.HandleFunc("/planning", planningInfo)
+	http.HandleFunc("/planning2", planningInfo2)
 
 	http.ListenAndServe(":3000", nil)
 }

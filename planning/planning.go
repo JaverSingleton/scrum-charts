@@ -15,25 +15,12 @@ func GetPlanningInfo(manager *jira.JobManager, team *config.FeatureTeam) (Planni
 		return PlanningInfo {}, nil
 	}
 
-	plannedJql := "Sprint = " + strconv.Itoa(manager.Config.Code) + " AND " + 
-		"type != Story"
-	plannedChannel := make(chan []Issue)
-	go find(manager, plannedJql, plannedChannel)
-
-	lostJql := "Sprint = " + strconv.Itoa(manager.Config.PrevCode) + " AND " + 
-		"NOT Sprint in openSprints() AND " + 
-		"NOT Sprint in futureSprints() AND " + 
-		"type != Epic AND type != Story" + " AND " +
-		"resolutiondate is EMPTY"
-	lostChannel := make(chan []Issue)
-	go find(manager, lostJql, lostChannel)
+	lostIssues, plannedIssues := findLostAndPlannedIssues(manager, "")
 
 	users := make(map[string]User)
 
-	lostIssues, plannedIssues := <- lostChannel, <- plannedChannel
-
 	for _, teamUser := range team.Users {
-		users[teamUser] = createUser(teamUser, plannedIssues, lostIssues)
+		users[teamUser.Name] = createUser(teamUser, plannedIssues, lostIssues)
 	}
     
     return PlanningInfo { 
@@ -42,27 +29,51 @@ func GetPlanningInfo(manager *jira.JobManager, team *config.FeatureTeam) (Planni
     }, nil
 }
 
+func findLostAndPlannedIssues(manager *jira.JobManager, teamName string) (lostIssues []Issue, plannedIssues []Issue) {
+	plannedJql := "Sprint = " + strconv.Itoa(manager.Config.Code) + " AND " + 
+		"type != Story"
+	if (teamName != "") {
+		plannedJql += " AND \"Feature Team\"  = " + teamName
+	}
+	plannedChannel := make(chan []Issue)
+	go find(manager, plannedJql, plannedChannel)
+
+	lostJql := "Sprint = " + strconv.Itoa(manager.Config.PrevCode) + " AND " + 
+		"NOT Sprint in openSprints() AND " + 
+		"NOT Sprint in futureSprints() AND " + 
+		"type != Epic AND type != Story" + " AND " +
+		"resolutiondate is EMPTY"
+	if (teamName != "") {
+		lostJql += " AND \"Feature Team\"  = " + teamName
+	}
+	lostChannel := make(chan []Issue)
+	go find(manager, lostJql, lostChannel)
+
+	lostIssues, plannedIssues = <- lostChannel, <- plannedChannel
+	return
+}
+
 func find(manager *jira.JobManager, jql string, issues chan<- []Issue) {
 	search := make(chan jira.Search)
 	go manager.AddJob(jql, search)
 	issues <- convert(<-search)
 }
 
-func createUser(assignee string, plannedIssues []Issue, lostIssues []Issue) User {
+func createUser(user config.User, plannedIssues []Issue, lostIssues []Issue) User {
 	var userPlannedIssues []Issue = make([]Issue, 0)
 	for _, issue := range plannedIssues {
-		if (issue.Assignee == assignee) {
+		if (issue.Assignee == user.Name) {
 			userPlannedIssues = append(userPlannedIssues, issue)
 		}
 	}
 	var userLostIssues []Issue = make([]Issue, 0)
 	for _, issue := range lostIssues {
-		if (issue.Assignee == assignee) {
+		if (issue.Assignee == user.Name) {
 			userLostIssues = append(userLostIssues, issue)
 		}
 	}
 	return User {
-		Name: assignee,
+		Name: user.Name,
 		PlannedIssues: userPlannedIssues,
 		LostIssues: userLostIssues,
 	}

@@ -65,13 +65,13 @@ func createPlatform(platformName string, plannedIssues []Issue, lostIssues []Iss
 func findUnknownPlatform(knownPlatforms map[string] *Platform, plannedIssues []Issue, lostIssues []Issue) *Platform {
 	var unkownPlannedIssues []Issue = make([]Issue, 0)
 	for _, issue := range plannedIssues {
-		if _, ok := knownPlatforms[issue.Platform]; !ok {
+		if _, ok := knownPlatforms[issue.Platform]; !ok && issue.Type != "Epic" {
 			unkownPlannedIssues = append(unkownPlannedIssues, issue)
 		}
 	}
 	var unknownLostIssues []Issue = make([]Issue, 0)
 	for _, issue := range lostIssues {
-		if _, ok := knownPlatforms[issue.Platform]; !ok {
+		if _, ok := knownPlatforms[issue.Platform]; !ok && issue.Type != "Epic"{
 			unknownLostIssues = append(unknownLostIssues, issue)
 		}
 	}

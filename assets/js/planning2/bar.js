@@ -25,7 +25,7 @@ var Bar = {
               return result + storyPoints
             }, 0)
     var category = "Total SP"
-    if (storyPoints < maxStoryPoints * 0.9 || storyPoints > maxStoryPoints * 1.1) {
+    if (storyPoints < maxStoryPoints * 0.9 || storyPoints > maxStoryPoints * 1.15) {
       category += " ⚠️"
     }
     var chart = new Highcharts.Chart({

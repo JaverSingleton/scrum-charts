@@ -33,7 +33,7 @@ func findLostAndPlannedIssues(manager *jira.JobManager, teamName string) (lostIs
 	plannedJql := "Sprint = " + strconv.Itoa(manager.Config.Code) + " AND " + 
 		"type != Story"
 	if (teamName != "") {
-		plannedJql += " AND \"Feature Team\"  = " + teamName
+		plannedJql += " AND (\"Feature Team\"  = " + teamName + " OR \"Feature teams\"  = " + teamName + ")"
 	}
 	plannedChannel := make(chan []Issue)
 	go find(manager, plannedJql, plannedChannel)
@@ -44,7 +44,7 @@ func findLostAndPlannedIssues(manager *jira.JobManager, teamName string) (lostIs
 		"type != Epic AND type != Story" + " AND " +
 		"resolutiondate is EMPTY"
 	if (teamName != "") {
-		lostJql += " AND \"Feature Team\"  = " + teamName
+		lostJql += " AND (\"Feature Team\"  = " + teamName + " OR \"Feature teams\"  = " + teamName + ")"
 	}
 	lostChannel := make(chan []Issue)
 	go find(manager, lostJql, lostChannel)

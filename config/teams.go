@@ -14,6 +14,7 @@ type User struct {
 	Name string `json:"name"`
 	DayOff float64 `json:"dayOff"`
 	Platforms map[string]float64 `json:"platforms"`
+	EasyPlatforms map[string]float64 `json:"easyPlatforms"`
 }
 
 func GetTeams() (map[string]FeatureTeam, error) {

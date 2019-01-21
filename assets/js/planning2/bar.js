@@ -24,7 +24,7 @@ var Bar = {
             .reduce (function(result, storyPoints){
               return result + storyPoints
             }, 0)
-    var category = "Total SP"
+    var category = "Team"
     if (storyPoints < maxStoryPoints * 0.9 || storyPoints > maxStoryPoints * 1.15) {
       category += " ⚠️"
     }
@@ -57,7 +57,16 @@ var Bar = {
       },
       xAxis: {
         categories: [category],
-        gridLineColor: 'transparent'
+        gridLineColor: 'transparent',
+        labels: {
+            useHTML:true,
+            style:{
+                whiteSpace:'normal'
+            },
+            formatter: function () {
+                return '<div align="left" style="word-wrap: break-word;word-break: break-all;width:70px">' + this.value + '</div>';
+            }
+        }
       },
       yAxis: {
         stackLabels: {
@@ -95,7 +104,11 @@ var Bar = {
       },
       tooltip: {
         formatter: function () {
-          return '<b>' + this.point.item.storyPoints + ' из ' + this.point.item.maxStoryPoints + '</b>';
+          var postfix = ""
+          if (this.point.item.maxEasyStoryPoints > 0) {
+            postfix = ' (+' + this.point.item.maxEasyStoryPoints.toFixed(1) + ' Easy SP) '
+          }
+          return '<b>' + this.point.item.storyPoints.toFixed(1) + ' из ' + this.point.item.maxCommonStoryPoints.toFixed(1) + postfix +  '</b>';
         }
       },
       series: [{
@@ -118,7 +131,8 @@ var Bar = {
             platform: category,
             issues: platforms[category].plannedIssues,
             storyPoints: storyPoints,
-            maxStoryPoints: platforms[category].maxStoryPoints,
+            maxCommonStoryPoints: platforms[category].maxCommonStoryPoints,
+            maxEasyStoryPoints: platforms[category].maxEasyStoryPoints,
             isActive: category == selectedPlatform || selectedPlatform == null
           }
         }

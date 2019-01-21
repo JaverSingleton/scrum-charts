@@ -27,7 +27,14 @@ func GetPlanningInfo2(manager *jira.JobManager, team *config.FeatureTeam, teamNa
 				platforms[plaftormName] = createPlatform(plaftormName, plannedIssues, lostIssues)
 			}
 			platform := platforms[plaftormName]
-			platform.MaxStoryPoints += platformValue * userSpIndex * spPerIndex
+			platform.MaxCommonStoryPoints += platformValue * userSpIndex * spPerIndex
+		}
+		for plaftormName, platformValue := range teamUser.EasyPlatforms {
+			if _, ok := platforms[plaftormName]; !ok {
+				platforms[plaftormName] = createPlatform(plaftormName, plannedIssues, lostIssues)
+			}
+			platform := platforms[plaftormName]
+			platform.MaxEasyStoryPoints += platformValue * userSpIndex * spPerIndex
 		}
 	}
 
@@ -77,7 +84,8 @@ func findUnknownPlatform(knownPlatforms map[string] *Platform, plannedIssues []I
 	}
 	if (len(unkownPlannedIssues) > 0 || len(unknownLostIssues) > 0) {
 		return &Platform {
-			MaxStoryPoints: 0.5,
+			MaxCommonStoryPoints: 0.5,
+			MaxEasyStoryPoints: 0.5,
 			Name: "Unknown",
 			PlannedIssues: unkownPlannedIssues,
 			LostIssues: unknownLostIssues,
@@ -94,7 +102,8 @@ type PlanningInfo2 struct {
 
 type Platform struct {
     Name string `json:"name"`
-	MaxStoryPoints float64 `json:"maxStoryPoints"`
+	MaxCommonStoryPoints float64 `json:"maxCommonStoryPoints"`
+	MaxEasyStoryPoints float64 `json:"maxEasyStoryPoints"`
 	PlannedIssues []Issue `json:"plannedIssues"`
 	LostIssues []Issue `json:"lostIssues"`
 }

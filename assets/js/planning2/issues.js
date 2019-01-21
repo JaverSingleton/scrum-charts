@@ -101,7 +101,11 @@ var Issues = {
 			var html = '<tr>'
 
 			html += '<th scope="row">' + issue.type + '</td>'
-			html += Table.column(Table.link(Table.strikeResolved(issue.name, issue), issue.uri, issue.platform))
+			var name = issue.name
+			if(issue.isEasy) {
+				name += " ❤️"
+			}
+			html += Table.column(Table.link(Table.strikeResolved(name, issue), issue.uri, issue.platform))
 			if (developmentCount > 0) {
 				if (issue.development != null) {
 					html += Table.task(issue.development)

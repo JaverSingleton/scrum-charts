@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 	"strings"
+    "reflect"
 
 	"github.com/JaverSingleton/scrum-charts/jira"
 	"github.com/JaverSingleton/scrum-charts/config"
@@ -115,6 +116,7 @@ func convertIssue(jiraIssue jira.Issue) Issue {
 		Platform: jiraIssue.Fields.Components[0].Name,
 		Uri: createUri(jiraIssue.Key),
 		IsResolved: jiraIssue.Fields.Status.Category.Key == "done",
+		IsEasy: contains("Easy", jiraIssue.Fields.Labels),
 	}
 }
 
@@ -219,6 +221,20 @@ func createUri(key string) string {
 	return "https://jr.avito.ru/browse/" + key
 }
 
+func contains(v interface{}, in interface{}) (ok bool) {
+	var i int
+    val := reflect.Indirect(reflect.ValueOf(in))
+    switch val.Kind() {
+    case reflect.Slice, reflect.Array:
+        for ; i < val.Len(); i++ {
+            if ok = v == val.Index(i).Interface(); ok {
+                return
+            }
+        }
+    }
+    return
+}
+
 func hasTestsCassesSubstring(title string) (result bool) {
 	lowerTitle := strings.ToLower(title)
 	result = false
@@ -267,5 +283,6 @@ type Issue struct {
     Platform string `json:"platform"`
     OutSprint bool `json:"outSprint"`
     IsResolved bool `json:"isResolved"`
+    IsEasy bool `json:"isEasy"`
     Uri string `json:"uri"`
 }

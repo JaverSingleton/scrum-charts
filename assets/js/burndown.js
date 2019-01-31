@@ -58,7 +58,6 @@ var Chart = {
         title: {
             text: 'Story Points',
         },
-        tickInterval: 5,
         min: 0
       },
       legend: {

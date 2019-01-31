@@ -68,11 +68,15 @@ var Chart = {
       tooltip: {
         formatter: function () {
           var s = ""
+          var offset = 0
+          if (this.points.length >= 3) {
+            offset = 1
+          }
 
-          if (this.points[1]) {
-            s = '<b>' + this.points[2].y.toFixed(1) + " (Ideal: " + this.points[1].y.toFixed(1) + ')</b>';
+          if (this.points[0 + offset]) {
+            s = '<b>' + this.points[1 + offset].y.toFixed(1) + " (Ideal: " + this.points[0 + offset].y.toFixed(1) + ')</b>';
           } else {
-            s = '<b>' + "Ideal: " + this.points[1].toFixed(1) + '</b>';
+            s = '<b>' + "Ideal: " + this.points[0 + offset].toFixed(1) + '</b>';
           }
 
           this.points.forEach(function(point){

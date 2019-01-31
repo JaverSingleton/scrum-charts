@@ -57,7 +57,9 @@ var Chart = {
       yAxis: {
         title: {
             text: 'Story Points',
-        }
+        },
+        tickInterval: 5,
+        min: 0
       },
       legend: {
         layout: 'vertical',
@@ -68,15 +70,13 @@ var Chart = {
       tooltip: {
         formatter: function () {
           var s = ""
-          var offset = 0
-          if (this.points.length >= 3) {
-            offset = 1
-          }
+          var actual = actualChart[this.points[0].point.x]
+          var ideal = idealChart[this.points[0].point.x]
 
-          if (this.points[1 + offset]) {
-            s = '<b>' + this.points[1 + offset].y.toFixed(1) + " (Ideal: " + this.points[0 + offset].y.toFixed(1) + ')</b>';
+          if (actual) {
+            s = '<b>' + actual.y.toFixed(1) + " (Ideal: " + ideal.toFixed(1) + ')</b>';
           } else {
-            s = '<b>' + "Ideal: " + this.points[0 + offset].toFixed(1) + '</b>';
+            s = '<b>' + "Ideal: " + ideal.toFixed(1) + '</b>';
           }
 
           this.points.forEach(function(point){
@@ -104,6 +104,7 @@ var Chart = {
         marker: {
           radius: 0
         },
+        enableMouseTracking: false,
         dashStyle: 'LongDash',
         color: 'rgb(129,236,236)',
         name: 'Average',
@@ -143,21 +144,7 @@ var Chart = {
           if (!weekend.some(weekendDay => date.getTime() == weekendDay.getTime())) {
             workDayIndex++
           }
-          return maxPoints - workDayIndex * perDay
-        })
-    }
-
-    function calculateIdealChart(maxPoints, dates, weekend) {
-      var workDaysCount = dates.length - weekend.length;
-      var perDay = maxPoints / workDaysCount;
-      var workDayIndex = 0
-      return dates
-        .map (function(date) {
-          var index = workDayIndex
-          if (!weekend.some(weekendDay => date.getTime() == weekendDay.getTime())) {
-            workDayIndex++
-          }
-          return maxPoints - workDayIndex * perDay
+          return Math.max(0, maxPoints - workDayIndex * perDay)
         })
     }
 
@@ -195,7 +182,7 @@ var Chart = {
       var currentDate = new Date()
       return chartDatas.map(function(data, index) {
         var date = data.date
-        if (date.getDate() == currentDate.getDate() && date.getMonth() == currentDate.getMonth()) {
+        if (isToday(date)) {
             return {  
               issues: data.issues,
               marker: {
@@ -226,9 +213,10 @@ var Chart = {
     }
 
     function calculateIdealAverage(remainingStoryPoints, dates, weekend) {
-      var currentTime = new Date().getTime()
+      var currentDate = new Date()
+      var currentTime = currentDate.getTime()
       var workDaysCount = dates
-        .filter(date => date.getTime() >= currentTime)
+        .filter(date => isLaterOrToday(date))
         .filter(function(date) { return !weekend.some(weekendDay => date.getTime() == weekendDay.getTime()) })
         .length
       return remainingStoryPoints / workDaysCount
@@ -247,7 +235,7 @@ var Chart = {
             workDayIndex++
           }
           var value = maxPoints - workDayIndex * perDay
-          var needToShow = date.getTime() >= currentTime || (currentDate.getDate() == date.getDate() && currentDate.getMonth() == date.getMonth())
+          var needToShow = isLaterOrToday(date)
           if (position == dates.length - 1) {
             return {
               dataLabels: {
@@ -299,6 +287,16 @@ var Chart = {
         }
       })
       return weekendPeriods
+    }
+
+    function isLaterOrToday(date) {
+      var currentDate = new Date()
+      return date.getTime() >= currentDate.getTime() || isToday(date)
+    }
+
+    function isToday(date) {
+      var currentDate = new Date()
+      return currentDate.getDate() == date.getDate() && currentDate.getMonth() == date.getMonth()
     }
 
   }

@@ -45,9 +45,9 @@ var Chart = {
         stackLabels: {
           enabled: true,
             style: {
-            color: '#DDD',
-            font: 'bold 12px Lucida Grande, Lucida Sans Unicode,' +
-                ' Verdana, Arial, Helvetica, sans-serif'
+              color: '#DDD',
+              font: 'bold 12px Lucida Grande, Lucida Sans Unicode,' +
+                  ' Verdana, Arial, Helvetica, sans-serif'
             }
         },
         title: {

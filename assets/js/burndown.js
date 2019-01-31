@@ -73,7 +73,7 @@ var Chart = {
             offset = 1
           }
 
-          if (this.points[0 + offset]) {
+          if (this.points[1 + offset]) {
             s = '<b>' + this.points[1 + offset].y.toFixed(1) + " (Ideal: " + this.points[0 + offset].y.toFixed(1) + ')</b>';
           } else {
             s = '<b>' + "Ideal: " + this.points[0 + offset].toFixed(1) + '</b>';

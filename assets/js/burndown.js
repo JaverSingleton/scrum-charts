@@ -234,6 +234,8 @@ var Chart = {
       var workDaysCount = dates.length - weekend.length;
       var perDay = average;
       var workDayIndex = 0
+      var currentDate = new Date()
+      var currentTime = currentDate.getTime()
       return dates
         .map (function(date, position) {
           var index = workDayIndex
@@ -241,6 +243,7 @@ var Chart = {
             workDayIndex++
           }
           var value = maxPoints - workDayIndex * perDay
+          var needToShow = date.getTime() >= currentTime || (currentDate.getDate() == date.getDate() && currentDate.getMonth() == date.getMonth())
           if (position == dates.length - 1) {
             return {
               dataLabels: {
@@ -261,11 +264,18 @@ var Chart = {
                 overflow: true,
                 crop: false
               },
-              y: value
+              needToShow: needToShow,
+              y: value,
+              x: position
             }
           }
-          return value
+          return {
+            needToShow: needToShow,
+            y: value,
+            x: position
+          }
         })
+        .filter(point => point.needToShow)
     }
 
     function calculateWeekendPeriods(dates, weekend) {

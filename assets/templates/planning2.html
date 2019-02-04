@@ -3,6 +3,7 @@
     	var planningInfo = {{.PlanningInfo}}
     	var url = new URL(window.location.href);
     	var platform = url.searchParams.get("platform");
+        var withAutoRefresh = Boolean(url.searchParams.has("refresh"))
     	if (platform == "") {
     		platform = null
     	}
@@ -23,6 +24,7 @@
     <script src="assets/js/planning2/bar.js"></script>
     <script src="assets/js/planning2/platform.js"></script>
     <script src="assets/js/planning2/issues.js"></script>
+    <script src="assets/js/planning2/refresh.js"></script>
 
     <script>
     	var plannedIssues = [];
@@ -39,6 +41,9 @@
     	}
     	plannedIssues = Issues.filter(plannedIssues)
     	lostIssues = Issues.filter(lostIssues)
+        if (withAutoRefresh) {
+            Refresh.delayStart()
+        }
     </script>
 
 	<div class="container">
@@ -106,15 +111,20 @@
 						<div class="page-header" style="top: 0px; position: absolute; width: 100%">
 							<script>
 					    		document.write(`
-								    	<h1>` + team + `</h1>
+								    	<h1 style="float: left">` + team + `</h1>
 				    			`)
 							</script>
 
-							<button id="refresh-button" type="button" class="btn btn-primary" style="position: absolute; right: 50px; top: 5px;">
-								Refresh 
-							</button>
+                            <div style="float: right">
+    							<button id="refresh-button" type="button" class="btn btn-primary">
+    								Refresh 
+    							</button>
+                                <div class="custom-control custom-checkbox" style="margin-top: 0.25rem">
+                                    <input type="checkbox" class="custom-control-input" id="autoRefresh">
+                                    <label class="custom-control-label" for="autoRefresh">Auto</label>
+                                </div>
+                            </div>
 						</div>		
-
 					</div>	
 				</div>
 			</div>
@@ -137,7 +147,7 @@
 				    		if (lostIssues.length > 0) {
 					    		document.write(`
 									<div class="page-header" style="margin-top: 3rem;">
-								    	<h5>Lost Issues:</h5>
+								    	<h5 title="Потерянные задачи необходимо перенести в текущий или будущие спринты">Lost Issues ⚠️:</h5>
 									</div>
 				    			`)
 					    		Issues.draw(lostIssues)
@@ -160,14 +170,15 @@
 
     <script>
 	    $('#refresh-button').on('click', function(event) {
-		    $.get("cache/invalidate")
-		    	.done(function(data){
-		    		location.reload();
-			    })
-				.fail(function(data) {
-					console.log(data);
-				});
+		    Refresh.start()
 		});
+        var autoRefreshCheck = $('#autoRefresh')
+        if (withAutoRefresh) {
+            autoRefreshCheck.prop('checked', true);
+        }
+        autoRefreshCheck.on('change', function() {
+            window.location.href = $.query.set("refresh", $(this).prop('checked'))
+        });
     </script>
 
     <script>

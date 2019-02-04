@@ -8,28 +8,28 @@ var Table = {
 		}
 	},
 
-	link: function(text, uri, hint = "") {
-		return '<a href="' + uri + '" target="_blank" title="' + hint + '"">' + text + '</a>'
+	link: function(text, uri) {
+		return '<a href="' + uri + '" target="_blank">' + text + '</a>'
 	},
 
-	warning: function(text = "") {
+	warning: function(text = "", hint = "") {
+		var warning = '<span title = "' +  hint+ '">⚠️</span>'
 		if (text == "") {
-			return "⚠️"
+			return warning
 		} else {
-			return text + " ⚠️"
+			return text + " " + warning
 		}
-		return 
 	},
 
 	task: function(issue) {
 		var text = ""
 		if (issue.outSprint && !issue.isResolved) {
-			text +=  this.warning(issue.key)
+			text +=  this.warning(issue.key, "Задача не в спринте")
 		} else {
 			text += issue.key
 		}
 		text = this.strikeResolved(text, issue)
-		return this.column(this.link(text, issue.uri, issue.platform))
+		return this.column(this.link(text, issue.uri))
 	},
 
 	column: function(text) {
@@ -46,7 +46,7 @@ var Table = {
 
 		var name = issue.name
 		if (issue.outSprint) {
-			name = Table.warning(issue.key)
+			name = Table.warning(issue.key, "Эпик не в спринте")
 		}
 
 		html += '<td colspan="' + spanCount + '" align="center">'
@@ -105,7 +105,7 @@ var Issues = {
 			if(issue.isEasy) {
 				name += " ❤️"
 			}
-			html += Table.column(Table.link(Table.strikeResolved(name, issue), issue.uri, issue.platform))
+			html += Table.column(Table.link(Table.strikeResolved(name, issue), issue.uri))
 			if (developmentCount > 0) {
 				if (issue.development != null) {
 					html += Table.task(issue.development)
@@ -127,7 +127,7 @@ var Issues = {
 					html += Table.column("")
 				}
 			}
-			var storyPoints =  Table.warning()
+			var storyPoints =  Table.warning("", "Задача не оценена")
 			if (issue.storyPoints != null) {
 				storyPoints = issue.storyPoints
 			}

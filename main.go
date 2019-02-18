@@ -161,7 +161,6 @@ func planningInfo2(w http.ResponseWriter, r *http.Request) {
 }
 
 func sprintInfo(w http.ResponseWriter, r *http.Request) {
-	log.Println("\r\n")
 	log.Println("Get Config")
 	credentials, err := config.GetCredentials()
 	if err != nil {

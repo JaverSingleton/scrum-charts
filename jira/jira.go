@@ -33,13 +33,19 @@ func FindByJql(config config.Config, credentials config.Credentials, jql string)
 	client := &http.Client {}
     log.Println("Do Request:", Url.String())
 	response, err := client.Do(req)
-    if err != nil {
+    if err != nil{
+        log.Println("Do Request - Failure:", err)
     	return Search {}, err
     }
     defer response.Body.Close()
     log.Println("Read Body")
     contents, err := ioutil.ReadAll(response.Body)
+    if response.StatusCode != 200 {
+        log.Println("Do Request - Failure:", "Code = ", response.StatusCode)
+        return Search {}, err
+    }
     if err != nil {
+        log.Println("Read Body - Failure:", err)
     	return Search {}, err
     }
     var search = Search {
@@ -47,6 +53,7 @@ func FindByJql(config config.Config, credentials config.Credentials, jql string)
     }
     log.Println("Umarshal JSON")
 	if err = json.Unmarshal(contents, &search); err != nil {
+        log.Println("Umarshal JSON - Failure:", err)
 		return Search {}, err
 	}
 	return search, nil

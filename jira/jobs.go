@@ -27,10 +27,13 @@ type SearchJob struct {
 	Jql string
 	ExpiredDate time.Time
 	LastResult Search
+	lock *sync.Mutex
 }
 
 func (job *SearchJob) sendResult(search chan<- Search) {
+	job.lock.Lock()
 	search <- job.LastResult
+	job.lock.Unlock()
 }
 
 func (manager *JobManager) refreshDate(job *SearchJob) {
@@ -49,6 +52,7 @@ func (manager *JobManager) AddJob(jql string, search chan<- Search) {
     	log.Println("Create Job")
 		resultJob := SearchJob {
 			Jql: jql,
+			lock: &sync.Mutex {},
 		}
 		result = &resultJob
 		manager.Jobs[jql] = &resultJob
@@ -124,9 +128,11 @@ func (manager *JobManager) refreshAndSend(job *SearchJob, search chan<- Search) 
 }
 
 func (manager *JobManager) refresh(job *SearchJob) {
+	job.lock.Lock()
 	if search, err := FindByJql(manager.Config, manager.Credentials, job.Jql); err == nil {
 		job.LastResult = search
 	} else {
 		job.LastResult = Search {}
 	}
+	job.lock.Unlock()
 }

@@ -81,14 +81,13 @@ func createUser(user config.User, plannedIssues []Issue, lostIssues []Issue) Use
 }
 
 func convert(jiraSearch jira.Search) []Issue {
-    log.Println("Issues processing: Start")
+    log.Println("Issues processing - Start: Count = ", len(jiraSearch.Issues))
 	var result []Issue = make([]Issue, 0)
 	issues := make(map[string]Issue)
 	for _, jiraIssue := range jiraSearch.Issues {
 		issues[jiraIssue.Key] = convertIssue(jiraIssue)
 	}
 	for _, jiraIssue := range jiraSearch.Issues {
-    	log.Println("Issue " + jiraIssue.Key + " processing")
 		if issue, ok := issues[jiraIssue.Key]; ok {
 			if (issue.Type == "QA") {
 				issue.Development = findDevelopmentIssue(issues, jiraIssue)
@@ -101,12 +100,11 @@ func convert(jiraSearch jira.Search) []Issue {
 			result = append(result, issue)
 		}
 	}
-    log.Println("Issues processing: Completed")
+    log.Println("Issues processing - Completed: Count = ", len(jiraSearch.Issues))
 	return result
 }
 
 func convertIssue(jiraIssue jira.Issue) Issue {
-    log.Println("Issue " + jiraIssue.Key + " converting")
 	return Issue { 
 		Key: jiraIssue.Key,
 		Name: jiraIssue.Fields.Summary,

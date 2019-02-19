@@ -17,7 +17,7 @@ func GetIssues(manager *jira.JobManager, config config.Config, credentials confi
 	} else {
 		var teamQuery string
 		if (config.Team != "") {
-			teamQuery = "AND (\"Feature Team\"  = " + config.Team + " OR \"Feature teams\"  = " + config.Team + ")"
+			teamQuery = "AND \"Feature teams\"  = " + config.Team
 		}
 		jql = "Sprint = " + strconv.Itoa(config.Code) + " " +
                 "AND (resolutiondate is EMPTY OR resolutiondate >= \"" + config.StartDate + "\")" +

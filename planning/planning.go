@@ -16,7 +16,7 @@ func GetPlanningInfo(manager *jira.JobManager, team *config.FeatureTeam) (Planni
 		return PlanningInfo {}, nil
 	}
 
-	lostIssues, plannedIssues := findLostAndPlannedIssues(manager, "")
+	lostIssues, plannedIssues, _ := findLostAndPlannedIssues(manager, "")
 
 	users := make(map[string]User)
 
@@ -30,13 +30,13 @@ func GetPlanningInfo(manager *jira.JobManager, team *config.FeatureTeam) (Planni
     }, nil
 }
 
-func findLostAndPlannedIssues(manager *jira.JobManager, teamName string) (lostIssues []Issue, plannedIssues []Issue) {
+func findLostAndPlannedIssues(manager *jira.JobManager, teamName string) (lostIssues []Issue, plannedIssues []Issue, requestDate time.Time) {
 	plannedJql := "Sprint = " + strconv.Itoa(manager.Config.Code) + " AND " + 
 		"type != Story"
 	if (teamName != "") {
 		plannedJql += " AND \"Feature teams\"  = " + teamName
 	}
-	plannedChannel := make(chan []Issue)
+	plannedChannel := make(chan Issues)
 	go find(manager, plannedJql, plannedChannel)
 
 	lostJql := "Sprint = " + strconv.Itoa(manager.Config.PrevCode) + " AND " + 
@@ -47,14 +47,17 @@ func findLostAndPlannedIssues(manager *jira.JobManager, teamName string) (lostIs
 	if (teamName != "") {
 		lostJql += " AND \"Feature teams\"  = " + teamName
 	}
-	lostChannel := make(chan []Issue)
+	lostChannel := make(chan Issues)
 	go find(manager, lostJql, lostChannel)
 
-	lostIssues, plannedIssues = <- lostChannel, <- plannedChannel
+	lostIssuesResult, plannedIssuesResult := <- lostChannel, <- plannedChannel
+	lostIssues = lostIssuesResult.Issues
+	plannedIssues = plannedIssuesResult.Issues
+	requestDate = plannedIssuesResult.RequestDate
 	return
 }
 
-func find(manager *jira.JobManager, jql string, issues chan<- []Issue) {
+func find(manager *jira.JobManager, jql string, issues chan<- Issues) {
 	search := make(chan jira.Search)
 	go manager.AddJob(jql, search)
 	issues <- convert(<-search)
@@ -80,7 +83,7 @@ func createUser(user config.User, plannedIssues []Issue, lostIssues []Issue) Use
 	}
 }
 
-func convert(jiraSearch jira.Search) []Issue {
+func convert(jiraSearch jira.Search) Issues {
     log.Println("Issues processing - Start: Count = ", len(jiraSearch.Issues))
 	var result []Issue = make([]Issue, 0)
 	issues := make(map[string]Issue)
@@ -89,7 +92,7 @@ func convert(jiraSearch jira.Search) []Issue {
 	}
 	for _, jiraIssue := range jiraSearch.Issues {
 		if issue, ok := issues[jiraIssue.Key]; ok {
-			if (issue.Type == "QA") {
+			if (issue.Type == "QA" || issue.Type == "TestCase") {
 				issue.Development = findDevelopmentIssue(issues, jiraIssue)
 				issue.Epic = findEpicIssue(issues, jiraIssue)
 			} else if (issue.Type != "Epic"){
@@ -101,7 +104,10 @@ func convert(jiraSearch jira.Search) []Issue {
 		}
 	}
     log.Println("Issues processing - Completed: Count = ", len(jiraSearch.Issues))
-	return result
+	return Issues {
+		Issues: result,
+		RequestDate: time.Now().Local(),
+	}
 }
 
 func convertIssue(jiraIssue jira.Issue) Issue {
@@ -132,7 +138,7 @@ func findTestIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue {
 func findTestCassesIssue(issues map[string]Issue, targetIssue jira.Issue) *Issue {
 	qaIssues := findQaIssue(issues, targetIssue)
 	for _, qaIssue := range qaIssues {
-		if hasTestsCassesSubstring(qaIssue.Name)   {    
+		if hasTestsCassesSubstring(qaIssue.Name) || qaIssue.Type == "TestCase"  {    
 			return &qaIssue
 		} 
 	}
@@ -168,7 +174,7 @@ func findDevelopmentIssue(issues map[string]Issue, targetIssue jira.Issue) *Issu
 
 func findQaIssue(issues map[string]Issue, targetIssue jira.Issue) (result []Issue) {
 	for _, link := range targetIssue.Fields.Issuelinks {
-		if (link.Type.Name == "Blocks" && link.OutwardIssue.Key != "" && link.OutwardIssue.Fields.Issuetype.Name == "QA") {
+		if (link.Type.Name == "Blocks" && link.OutwardIssue.Key != "" && (link.OutwardIssue.Fields.Issuetype.Name == "QA" || link.OutwardIssue.Fields.Issuetype.Name == "TestCase")) {
 			if qaIssue, ok := issues[link.OutwardIssue.Key]; ok {  
 				if (qaIssue.Platform == "QA") {
 					result = append(result, qaIssue)
@@ -191,7 +197,7 @@ func findQaIssue(issues map[string]Issue, targetIssue jira.Issue) (result []Issu
 
 func findDevelopmentIssues(issues map[string]Issue, targetIssue jira.Issue) (result []Issue) {
 	for _, link := range targetIssue.Fields.Issuelinks {
-		if (link.Type.Name == "Blocks" && link.InwardIssue.Key != "" && link.InwardIssue.Fields.Issuetype.Name != "QA" && link.InwardIssue.Fields.Issuetype.Name != "Story") {
+		if (link.Type.Name == "Blocks" && link.InwardIssue.Key != "" && link.InwardIssue.Fields.Issuetype.Name != "QA" && link.InwardIssue.Fields.Issuetype.Name != "TestCase" && link.InwardIssue.Fields.Issuetype.Name != "Story") {
 			foundIssue, hasIssue := issues[link.InwardIssue.Key]
 			var assignee = ""
 			var platform = ""
@@ -255,6 +261,11 @@ func calculateDatesDelta(startDate string, finishDate string) int {
 	    return 0
 	}
 	return int(finishTime.Sub(startTime).Hours() / 24) + 1
+}
+
+type Issues struct {
+	RequestDate time.Time
+	Issues []Issue
 }
 
 type PlanningInfo struct {

@@ -49,6 +49,7 @@ func FindByJql(config config.Config, credentials config.Credentials, jql string)
     	return Search {}, err
     }
     var search = Search {
+        RequestDate: time.Now().Local(),
     	ExpiredDate: time.Now().Local().Add(time.Second * time.Duration(config.CacheLifetime)),
     }
     log.Println("Umarshal JSON")
@@ -66,6 +67,7 @@ type Search struct {
     StartAt int `json:"startAt"`
     Total int `json:"total"`
     ExpiredDate time.Time `json:"expiredDate"`
+	RequestDate time.Time `json:"requestDate"`
 }
 
 type Issue struct {

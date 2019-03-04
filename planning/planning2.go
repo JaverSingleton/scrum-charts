@@ -48,7 +48,7 @@ func GetPlanningInfo2(manager *jira.JobManager, team *config.FeatureTeam, teamNa
     return PlanningInfo2 { 
     	Platforms: platforms,
 		MaxStoryPoints: maxStoryPoints,
-		RequestDate: convertDate(requestDate),
+		RequestDate: requestDate,
     }, nil
 }
 
@@ -98,14 +98,10 @@ func findUnknownPlatform(knownPlatforms map[string] *Platform, plannedIssues []I
 	}
 }
 
-func convertDate(time time.Time) string {
-	return time.Format("2006-01-02")
-}
-
 type PlanningInfo2 struct {
 	MaxStoryPoints float64 `json:"maxStoryPoints"`
 	Platforms map[string]*Platform `json:"platforms"`
-	RequestDate string `json:"requestDate"`
+	RequestDate time.Time `json:"requestDate"`
 }
 
 type Platform struct {

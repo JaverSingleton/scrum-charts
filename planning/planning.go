@@ -106,7 +106,7 @@ func convert(jiraSearch jira.Search) Issues {
     log.Println("Issues processing - Completed: Count = ", len(jiraSearch.Issues))
 	return Issues {
 		Issues: result,
-		RequestDate: time.Now().Local(),
+		RequestDate: jiraSearch.RequestDate,
 	}
 }
 

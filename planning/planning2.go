@@ -2,6 +2,7 @@ package planning
 
 import (
 	"time"
+	"math"
 	
 	"github.com/JaverSingleton/scrum-charts/jira"
 	"github.com/JaverSingleton/scrum-charts/config"
@@ -23,21 +24,26 @@ func GetPlanningInfo2(manager *jira.JobManager, team *config.FeatureTeam, teamNa
 
 	for _, teamUser := range team.Users {
 		userSpIndex := (workDays - teamUser.DayOff) / workDays
-		maxStoryPoints += userSpIndex * spPerIndex
+		maxUserStoryPoints := userSpIndex * spPerIndex
+		var userPlatformStoryPoints float64 = 0
 		for plaftormName, platformValue := range teamUser.Platforms {
 			if _, ok := platforms[plaftormName]; !ok {
 				platforms[plaftormName] = createPlatform(plaftormName, plannedIssues, lostIssues)
 			}
 			platform := platforms[plaftormName]
+			userPlatformStoryPoints += platformValue * userSpIndex * spPerIndex
 			platform.MaxCommonStoryPoints += platformValue * userSpIndex * spPerIndex
 		}
+		var userEasyPlatformStoryPoints float64 = 0
 		for plaftormName, platformValue := range teamUser.EasyPlatforms {
 			if _, ok := platforms[plaftormName]; !ok {
 				platforms[plaftormName] = createPlatform(plaftormName, plannedIssues, lostIssues)
 			}
 			platform := platforms[plaftormName]
+			userEasyPlatformStoryPoints += platformValue * userSpIndex * spPerIndex
 			platform.MaxEasyStoryPoints += platformValue * userSpIndex * spPerIndex
 		}
+		maxStoryPoints += math.Min(maxUserStoryPoints, userPlatformStoryPoints + userEasyPlatformStoryPoints)
 	}
 
 	unknownPlatform := findUnknownPlatform(platforms, plannedIssues, lostIssues)

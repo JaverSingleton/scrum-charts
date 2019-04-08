@@ -20,7 +20,6 @@ func GetIssues(manager *jira.JobManager, config config.Config, credentials confi
 			teamQuery = "AND \"Feature teams\"  = " + config.Team
 		}
 		jql = "Sprint = " + strconv.Itoa(config.Code) + " " +
-                "AND (resolutiondate is EMPTY OR resolutiondate >= \"" + config.StartDate + "\")" +
                 teamQuery
 	}
     log.Println("Search:", jql)
@@ -45,13 +44,20 @@ func search(manager *jira.JobManager, config config.Config, credentials config.C
 			if childIssue, ok := issuesMap[childIssueKey]; ok {  
 				childIssue.Parents = issues[index].Parents
 				issues[index].IsProgress = issues[index].IsProgress || childIssue.IsProgress
+				if (childIssue.StoryPoints > 0) {
+					issues[index].StoryPoints = 0
+				}
 			}
 		}
 	}
 
 	result:= make([]Issue, len(issues))
+	sprintStartDate := date(config.StartDate)
 	for index, issue := range issues {
-		result[index] = *issue
+    	closeDate := date(issue.CloseDate)
+    	if (issue.CloseDate == "" || sprintStartDate.Before(closeDate) || sprintStartDate.Equal(closeDate)) {
+			result[index] = *issue
+		}
 	}
 	return result, nil
 }
@@ -158,6 +164,14 @@ func convertDate(date string) string {
 	    return ""
 	}
 	return time.Format("2006-01-02")
+}
+
+func date(date string) time.Time {
+	result, err := time.Parse("2006-01-02", date)
+	if err != nil {
+	    return time.Now()
+	} 
+	return result
 }
 
 type Issue struct {

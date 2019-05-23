@@ -10,6 +10,7 @@ var Chart = {
       'QA': `rgb(29,172,252)`
     }
     var sprintIssues = sprint.issues
+        .filter(issue => issue.key)
         .filter(issue => !issue.isStory)
     var categories = ["Backend", "Frontend", "Android", "iOS", "QA-Dev", "QA"]
     var groupIssues = categories
